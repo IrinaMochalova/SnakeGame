@@ -14,7 +14,7 @@ import ru.snake_game.model.Game;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Vector;
+import ru.snake_game.model.util.Direction;
 import ru.snake_game.view.util.IFieldObjectPainter;
 import ru.snake_game.view.util.NodeAndAnimation;
 
@@ -82,10 +82,10 @@ public class GameGUIProcessor implements IGameGUIProcessor {
 
         HashMap<KeyCode, Runnable> keyPressActions = new HashMap<>();
         keyPressActions.put(KeyCode.ESCAPE, this::pause);
-        keyPressActions.put(KeyCode.UP, () -> snake.setDirection(Vector.UP));
-        keyPressActions.put(KeyCode.DOWN, () -> snake.setDirection(Vector.DOWN));
-        keyPressActions.put(KeyCode.LEFT, () -> snake.setDirection(Vector.LEFT));
-        keyPressActions.put(KeyCode.RIGHT, () -> snake.setDirection(Vector.RIGHT));
+        keyPressActions.put(KeyCode.UP, () -> snake.setDirection(Direction.UP));
+        keyPressActions.put(KeyCode.DOWN, () -> snake.setDirection(Direction.DOWN));
+        keyPressActions.put(KeyCode.LEFT, () -> snake.setDirection(Direction.LEFT));
+        keyPressActions.put(KeyCode.RIGHT, () -> snake.setDirection(Direction.RIGHT));
 
         gameArea.setOnKeyPressed(event -> {
             Runnable toDo = keyPressActions.get(event.getCode());

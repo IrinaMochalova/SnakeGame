@@ -1,25 +1,25 @@
 package ru.snake_game.model.FieldObjects;
 
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 abstract public class AbstractFieldObject implements IFieldObject {
-    private Location location;
+    private Vector location;
 
-    protected AbstractFieldObject(Location location) {
+    protected AbstractFieldObject(Vector location) {
         if (location == null)
             throw new IllegalArgumentException("location is null.");
         this.setLocation(location);
     }
 
     @Override
-    public Location getLocation() {
+    public Vector getLocation() {
         return location;
     }
 
-    protected void setLocation(Location location) {
+    protected void setLocation(Vector location) {
         if (location == null)
-            throw new IllegalArgumentException("Location can'n be null.");
+            throw new IllegalArgumentException("Vector can'n be null.");
         this.location = location;
     }
 

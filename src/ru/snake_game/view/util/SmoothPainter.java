@@ -14,8 +14,8 @@ import javafx.util.Duration;
 import ru.snake_game.model.FieldObjects.*;
 import ru.snake_game.model.Interfaces.IFieldObject;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
 import ru.snake_game.model.util.Vector;
+import ru.snake_game.model.util.Direction;
 
 import java.util.HashMap;
 
@@ -65,8 +65,8 @@ public class SmoothPainter implements IFieldObjectPainter {
 
     private static Transition getSnakePartTickAnimation(SnakePart snakePart, Node node) {
         return new Transition() {
-            private Location from = snakePart.getLocation();
-            private Location to = snakePart.getLocation();
+            private Vector from = snakePart.getLocation();
+            private Vector to = snakePart.getLocation();
 
             {
                 setCycleDuration(Duration.seconds(1));
@@ -95,8 +95,8 @@ public class SmoothPainter implements IFieldObjectPainter {
 
     private static Transition getSnakeHeadTickAnimation(SnakeHead snakeHead, Node node) {
         return new Transition() {
-            private Location from = snakeHead.getLocation();
-            private Location to = snakeHead.getLocation();
+            private Vector from = snakeHead.getLocation();
+            private Vector to = snakeHead.getLocation();
 
             {
                 setCycleDuration(Duration.seconds(1));

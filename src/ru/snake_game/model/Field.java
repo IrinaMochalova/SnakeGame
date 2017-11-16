@@ -5,7 +5,7 @@ import ru.snake_game.model.FieldObjects.SnakeHead;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,13 +34,13 @@ public class Field implements IField, Iterable<IFieldObject> {
     }
 
     @Override
-    public IFieldObject getObjectAt(Location location) {
+    public IFieldObject getObjectAt(Vector location) {
         return getObjectAt(location.getX(), location.getY());
     }
 
     @Override
     public void addObject(IFieldObject object) {
-        Location loc = object.getLocation();
+        Vector loc = object.getLocation();
         field.set(getIndexInField(loc.getX(), loc.getY()), object);
     }
 
@@ -64,7 +64,7 @@ public class Field implements IField, Iterable<IFieldObject> {
     }
 
     @Override
-    public void eraseAt(Location location) {
+    public void eraseAt(Vector location) {
         field.set(getIndexInField(location.getX(), location.getY()), null);
     }
 

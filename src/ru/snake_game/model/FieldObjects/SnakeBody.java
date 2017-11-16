@@ -1,13 +1,13 @@
 package ru.snake_game.model.FieldObjects;
 
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 public class SnakeBody extends SnakePart {
     private final ISnakeHead head;
     protected SnakePart next;
 
-    public SnakeBody(Location location, ISnakeHead head, SnakeBody prev, SnakePart next)
+    public SnakeBody(Vector location, ISnakeHead head, SnakeBody prev, SnakePart next)
     {
         super(location, prev, next.field);
         this.next = next;

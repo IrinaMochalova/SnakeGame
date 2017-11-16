@@ -2,13 +2,13 @@ package ru.snake_game.model.FieldObjects;
 
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 public class Apple extends AbstractFieldObject {
     private final int foodValue;
     private IField field;
 
-    public Apple(Location location, IField field, int foodValue) {
+    public Apple(Vector location, IField field, int foodValue) {
         super(location);
         if (field == null)
             throw new IllegalArgumentException("field should not be null.");

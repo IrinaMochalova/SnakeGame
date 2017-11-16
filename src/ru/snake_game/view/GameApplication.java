@@ -17,7 +17,7 @@ import ru.snake_game.model.FieldGenerators;
 import ru.snake_game.model.FieldObjects.Apple;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 import java.util.HashSet;
 
@@ -54,16 +54,16 @@ public class GameApplication extends Application {
         for (IFieldObject object : field)
             if (object instanceof Apple)
                 return null;
-        HashSet<Location> freeLocations = new HashSet<>();
+        HashSet<Vector> freeLocations = new HashSet<>();
         for (int x = 0; x < field.getWidth(); x++)
             for (int y = 0; y < field.getHeight(); y++)
                 if (field.getObjectAt(x, y) == null)
-                    freeLocations.add(new Location(x, y));
+                    freeLocations.add(new Vector(x, y));
 
         if (freeLocations.isEmpty())
             return null;
 
-        Location appleLocation = getRandomItem(freeLocations);
+        Vector appleLocation = getRandomItem(freeLocations);
         Apple apple = new Apple(appleLocation, field, 3);
         field.addObject(apple);
 

@@ -6,8 +6,8 @@ import org.junit.Test;
 import ru.snake_game.model.FieldObjects.SnakeHead;
 import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.util.Location;
 import ru.snake_game.model.util.Vector;
+import ru.snake_game.model.util.Direction;
 
 import static org.junit.Assert.*;
 
@@ -17,8 +17,8 @@ public class FieldTest {
     @Before
     public void setUp() throws Exception {
         field = new Field(4,4);
-        field.addObject(new Wall(new Location(0, 0)));
-        field.addObject(new Wall(new Location(1, 1)));
+        field.addObject(new Wall(new Vector(0, 0)));
+        field.addObject(new Wall(new Vector(1, 1)));
     }
 
     @After
@@ -34,20 +34,20 @@ public class FieldTest {
 
     @Test
     public void getObjectAt1() throws Exception {
-        assertTrue(field.getObjectAt(new Location(1,1)) instanceof Wall);
-        assertNull(field.getObjectAt(new Location(3,3)));
+        assertTrue(field.getObjectAt(new Vector(1,1)) instanceof Wall);
+        assertNull(field.getObjectAt(new Vector(3,3)));
     }
 
     @Test
     public void setObjectAt() throws Exception {
-        Location location = new Location(2,2);
+        Vector location = new Vector(2,2);
         field.addObject(new Wall(location));
         assertTrue(field.getObjectAt(2,2) instanceof  Wall);
     }
 
     @Test
     public void setObjectAt1() throws Exception {
-        Location location = new Location(3,3);
+        Vector location = new Vector(3,3);
         field.addObject(new Wall(location));
         assertTrue(field.getObjectAt(location) instanceof Wall);
     }
@@ -64,8 +64,8 @@ public class FieldTest {
 
     @Test
     public void getSnakeHead() throws Exception {
-        Location location = new Location(0,1);
-        field.addObject(new SnakeHead(location, null, new Vector(0, 1), field));
+        Vector location = new Vector(0,1);
+        field.addObject(new SnakeHead(location, null, Direction.DOWN, field));
         assertEquals(location, field.getSnakeHead().getLocation());
     }
 

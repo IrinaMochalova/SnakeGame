@@ -1,9 +1,9 @@
 package ru.snake_game.model.FieldObjects;
 
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 public class Wall extends AbstractSolidFieldObject {
-    public Wall(Location location) {
+    public Wall(Vector location) {
         super(location);
     }
 }

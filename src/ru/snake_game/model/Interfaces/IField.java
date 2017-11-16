@@ -1,13 +1,13 @@
 package ru.snake_game.model.Interfaces;
 
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 public interface IField extends Iterable<IFieldObject> {
     int getWidth();
 
     int getHeight();
 
-    IFieldObject getObjectAt(Location location);
+    IFieldObject getObjectAt(Vector location);
 
     IFieldObject getObjectAt(int x, int y);
 
@@ -15,5 +15,5 @@ public interface IField extends Iterable<IFieldObject> {
 
     ISnakeHead getSnakeHead();
 
-    void eraseAt(Location location);
+    void eraseAt(Vector location);
 }

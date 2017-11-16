@@ -3,8 +3,8 @@ package ru.snake_game.model.FieldObjects;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
 import ru.snake_game.model.util.Vector;
+import ru.snake_game.model.util.Direction;
 
 public class SnakeHead extends SnakePart implements ISnakeHead {
     private Vector direction;
@@ -14,18 +14,18 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
     private boolean alive = true;
     private boolean justAte;
 
-    public SnakeHead(Location location, SnakeBody prev, Vector direction, IField field) {
+    public SnakeHead(Vector location, SnakeBody prev, Vector direction, IField field) {
         super(location, prev, field);
 
         setDirection(direction);
     }
 
-    public SnakeHead(Location location, Vector direction, IField field, Iterable<Location> bodyLocation) {
+    public SnakeHead(Vector location, Vector direction, IField field, Iterable<Vector> bodyLocation) {
         super(location, null, field);
         setDirection(direction);
 
         SnakePart tail = this;
-        for (Location partLocation : bodyLocation) {
+        for (Vector partLocation : bodyLocation) {
             tail.prev = new SnakeBody(partLocation, this, null, tail);
             field.addObject(tail.prev);
             tail = tail.prev;
@@ -66,7 +66,7 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
         if (lengthToGrow > 0 && !justAte) {
             SnakePart tail = getTail();
 
-            Location t = tail.getLocation();
+            Vector t = tail.getLocation();
             moveChild();
             tail.prev = new SnakeBody(t, this, null, tail);
             lengthToGrow--;
@@ -75,7 +75,7 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
         } else
             moveChild();
 
-        setLocation(getLocation().moved(direction));
+        setLocation(getLocation().add(direction));
         field.addObject(this);
         justAte = false;
     }
@@ -88,7 +88,7 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
     @Override
     public Vector getDirection() {
         if (!isAlive())
-            return Vector.ZERO;
+            return Direction.NONE;
         return direction;
     }
 
@@ -97,7 +97,7 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
         if (direction.getY() * direction.getX() != 0 || Math.abs(direction.getY() + direction.getX()) != 1)
             throw new IllegalArgumentException("Direction module is not 1.");
 
-        if (prev == null || !prev.getLocation().equals(getLocation().moved(direction)))
+        if (prev == null || !prev.getLocation().equals(getLocation().add(direction)))
             this.direction = direction;
     }
 
@@ -123,7 +123,7 @@ public class SnakeHead extends SnakePart implements ISnakeHead {
     public void act() {
         if (!isAlive())
             return;
-        IFieldObject directionObject = field.getObjectAt(getLocation().moved(direction));
+        IFieldObject directionObject = field.getObjectAt(getLocation().add(direction));
         if (directionObject != null)
             directionObject.snakeInteract(this);
         move();

@@ -3,13 +3,13 @@ package ru.snake_game.model.FieldObjects;
 import com.sun.istack.internal.NotNull;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.ISnakeHead;
-import ru.snake_game.model.util.Location;
+import ru.snake_game.model.util.Vector;
 
 public abstract class SnakePart extends AbstractSolidFieldObject {
     protected SnakeBody prev;
     protected IField field;
 
-    protected SnakePart(@NotNull Location location, @NotNull SnakeBody prev, @NotNull IField field) {
+    protected SnakePart(@NotNull Vector location, @NotNull SnakeBody prev, @NotNull IField field) {
         super(location);
 
         if (field == null)
