@@ -4,10 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ru.snake_game.model.FieldObjects.Apple;
-import ru.snake_game.model.FieldObjects.SnakeHead;
 import ru.snake_game.model.FieldObjects.Wall;
+import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
-import ru.snake_game.model.util.Direction;
 
 import java.util.ArrayList;
 
@@ -47,53 +46,53 @@ public class GameTest {
     @Test
     public void tick() throws Exception {
         Vector location = new Vector(1,1);
-        field.addObject(new SnakeHead(location, null, Direction.RIGHT, field));
+        field.addObject(new SnakeHead(location, null, Directions.RIGHT, field));
         location = new Vector(3, 2);
         field.addObject(new Apple(location, field, 2));
-        SnakeHead snakeHead = (SnakeHead) field.getSnakeHead();
+        SnakeHead snakeHeadHead = (SnakeHead) field.getSnakeHead();
 
         game.tick();
         game.tick();
-        snakeHead.setDirection(Direction.DOWN);
+        snakeHeadHead.setDirection(Directions.DOWN);
         game.tick();
         game.tick();
         game.tick();
-        snakeHead.setDirection(Direction.LEFT);
+        snakeHeadHead.setDirection(Directions.LEFT);
         game.tick();
         game.tick();
         game.tick();
 
-        assertFalse(snakeHead.isAlive());
+        assertFalse(snakeHeadHead.isAlive());
         assertTrue(field.getObjectAt(new Vector(0,4)) instanceof Wall);
         assertNull(field.getObjectAt(new Vector(3, 2)));
-        assertEquals(new Vector(1,4), snakeHead.getLocation());
-        assertEquals(3, snakeHead.length());
+        assertEquals(new Vector(1,4), snakeHeadHead.getLocation());
+        assertEquals(3, snakeHeadHead.length());
     }
 
     @Test
     public void cycleTick() throws Exception{
         Vector location = new Vector(1,1);
-        SnakeHead snakeHead = new SnakeHead(location, null, Direction.RIGHT, field);
-        field.addObject(snakeHead);
+        SnakeHead snakeHeadHead = new SnakeHead(location, null, Directions.RIGHT, field);
+        field.addObject(snakeHeadHead);
         location  = new Vector(2,1);
         field.addObject(new Apple(location, field, 11));
 
         ArrayList<Vector> directions = new ArrayList<>();
-        directions.add(Direction.DOWN);
-        directions.add(Direction.LEFT);
-        directions.add(Direction.UP);
-        directions.add(Direction.RIGHT);
+        directions.add(Directions.DOWN);
+        directions.add(Directions.LEFT);
+        directions.add(Directions.UP);
+        directions.add(Directions.RIGHT);
 
         for (int j = 0; j < 5; j++) {
             for (Vector direction : directions) {
                 for (int i = 0; i < 3; i++)
                     game.tick();
-                snakeHead.setDirection(direction);
+                snakeHeadHead.setDirection(direction);
             }
         }
 
-        assertTrue(snakeHead.isAlive());
-        assertEquals(12, snakeHead.length());
+        assertTrue(snakeHeadHead.isAlive());
+        assertEquals(12, snakeHeadHead.length());
     }
 
 }

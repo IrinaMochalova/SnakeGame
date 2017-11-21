@@ -1,125 +1,236 @@
 package ru.snake_game.view;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import ru.snake_game.model.FieldGenerators;
-import ru.snake_game.model.FieldObjects.Apple;
-import ru.snake_game.model.Interfaces.IField;
-import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.util.Vector;
+import javafx.util.Duration;
 
-import java.util.HashSet;
+import ru.snake_game.model.*;
+import ru.snake_game.model.FieldObjects.*;
+import ru.snake_game.model.Interfaces.*;
+import ru.snake_game.model.util.*;
 
-import static ru.snake_game.view.util.Extensions.getRandomItem;
-import static ru.snake_game.view.util.SmoothPainter.SMOOTH_PAINTER;
+import java.util.Random;
+import java.util.HashMap;
+import java.util.function.Supplier;
 
 public class GameApplication extends Application {
-    private static final int FIELD_HEIGHT = 15;
-    private static final int FIELD_WIDTH = 15;
     private Stage primaryStage;
 
-    public static final double WINDOW_WIDTH = 800;
-    public static final double WINDOW_HEIGHT = 600;
+    public static final int WINDOW_WIDTH = 800;
+    public static final int WINDOW_HEIGHT = 600;
 
     private Scene mainMenuScene;
     private Scene gameScene;
     private Scene pauseMenuScene;
 
-    private GameGUIProcessor gameProcessor;
+    SubScene gameArea;
+
+    private Duration tickDuration = new Duration(100);
+    private double cellSize;
+    private double strokeWidth;
+    private Snake snake;
+    private Game game;
+    private Timeline tickLine;
+    private Group gameObjectsToDraw;
+    private HashMap<IFieldObject, Node> drawnObjects;
+    private HashMap<Vector, Node> drawnSnakes;
+    private HashMap<Class, Supplier<Node>> howToPaint;
 
     @Override
     public void init() {
         initMainMenuScene();
+        initGameScene();
         initPauseMenuScene();
+
+        howToPaint = new HashMap<>();
+        howToPaint.put(Wall.class, () -> {
+            Rectangle res = new Rectangle(
+                    cellSize,
+                    cellSize);
+            res.setFill(Color.GRAY);
+            res.setStrokeType(StrokeType.INSIDE);
+            res.setStroke(Color.BLACK);
+            res.setStrokeWidth(strokeWidth);
+            return res;
+        });
+        howToPaint.put(Snake.class, () -> {
+            double r = cellSize / 2;
+            Circle res = new Circle(r, r, r);
+            res.setStrokeType(StrokeType.INSIDE);
+            res.setStroke(Color.BLACK);
+            res.setStrokeWidth(strokeWidth);
+            res.setFill(Color.LIGHTGREEN);
+            return res;
+        });
+        howToPaint.put(Apple.class, () -> {
+            double r = cellSize / 2;
+            Circle res = new Circle(r, r, r);
+            res.setStrokeType(StrokeType.INSIDE);
+            res.setStroke(Color.BLACK);
+            res.setStrokeWidth(strokeWidth);
+            res.setFill(Color.RED);
+            return res;
+        });
     }
 
-    private void initGameScene(SubScene gameArea) {
-        Group root = new Group(gameArea);
+    private void initGameScene() {
+        tickLine = new Timeline();
+        tickLine.setOnFinished(event -> {
+            game.tick();
+            handle(game.getField());
+            arrangeTickLineAndDrawnObjects();
+            if (snake.isAlive())
+                tickLine.play();
+//            else {
+//                Text text = new Text("YOU DIED");
+//                ((Group)gameScene.getRoot()).getChildren().add(text);
+//            }
+        });
+
+        Group root = new Group();
         gameScene = new Scene(root);
-        gameArea.setFocusTraversable(true);
-    }
 
-    private static Object gameLogic(IField field) {
-        for (IFieldObject object : field)
-            if (object instanceof Apple)
-                return null;
-        HashSet<Vector> freeLocations = new HashSet<>();
-        for (int x = 0; x < field.getWidth(); x++)
-            for (int y = 0; y < field.getHeight(); y++)
-                if (field.getObjectAt(x, y) == null)
-                    freeLocations.add(new Vector(x, y));
+        gameObjectsToDraw = new Group();
+        //noinspection SuspiciousNameCombination
+        gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
+        gameArea.layoutXProperty().bind(gameArea.widthProperty().divide(2).subtract(WINDOW_WIDTH / 2).multiply(-1));
+        gameArea.layoutYProperty().bind(gameArea.heightProperty().divide(2).subtract(WINDOW_HEIGHT / 2).multiply(-1));
+        gameArea.setFill(Color.LIGHTGRAY);
+        root.getChildren().add(gameArea);
 
-        if (freeLocations.isEmpty())
-            return null;
+        HashMap<KeyCode, Runnable> keyPressActions = new HashMap<>();
+        keyPressActions.put(KeyCode.ESCAPE, this::pauseGame);
+        keyPressActions.put(KeyCode.UP, () -> snake.setDirection(Directions.UP));
+        keyPressActions.put(KeyCode.DOWN, () -> snake.setDirection(Directions.DOWN));
+        keyPressActions.put(KeyCode.LEFT, () -> snake.setDirection(Directions.LEFT));
+        keyPressActions.put(KeyCode.RIGHT, () -> snake.setDirection(Directions.RIGHT));
 
-        Vector appleLocation = getRandomItem(freeLocations);
-        Apple apple = new Apple(appleLocation, field, 3);
-        field.addObject(apple);
-
-        return null;
+        gameScene.setOnKeyPressed(event -> {
+            Runnable toDo = keyPressActions.get(event.getCode());
+            if (toDo != null)
+                toDo.run();
+        });
     }
 
     private void startGame() {
-        gameProcessor = new GameGUIProcessor(FieldGenerators.genBoardedField(FIELD_HEIGHT, FIELD_WIDTH), SMOOTH_PAINTER);
-
-        gameProcessor.setOnPause(this::pauseGame);
-        gameProcessor.setGameLogic(GameApplication::gameLogic);
-
-        initGameScene(gameProcessor.getScene());
-        fitGameArea(gameProcessor.getScene());
-
+        @SuppressWarnings("MagicNumber") IField field = FieldMakers.makeBoardedField(15, 15);
+        snake = new Snake(new Vector(4, 4), Directions.RIGHT);
+        int snakeNumber = field.addSnake(snake);
+        game = new Game(field);
+        drawnObjects = new HashMap<>();
+        drawnSnakes = new HashMap<>();
+        cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();
+        strokeWidth = cellSize / 20;
+        arrangeTickLineAndDrawnObjects();
+        tickLine.play();
         primaryStage.setScene(gameScene);
-        gameProcessor.play();
-    }
-
-    private void fitGameArea(SubScene gameArea) {
-        double ratio;
-        if (gameArea.getHeight() * WINDOW_WIDTH > WINDOW_HEIGHT * gameArea.getWidth())
-            ratio = WINDOW_HEIGHT / gameArea.getHeight();
-        else
-            ratio = WINDOW_WIDTH / gameArea.getWidth();
-
-//        gameArea.setWidth(gameArea.getWidth() * ratio);
-//        gameArea.setHeight(gameArea.getHeight() * ratio);
-        gameArea.setScaleX(ratio);
-        gameArea.setScaleY(ratio);
-
-        gameArea.setTranslateX(-gameArea.getWidth() / 2);
-        gameArea.setTranslateY(-gameArea.getHeight() / 2);
-
-        gameArea.setLayoutX(WINDOW_WIDTH / 2);
-        gameArea.setLayoutY(WINDOW_HEIGHT / 2);
     }
 
     private void pauseGame() {
         primaryStage.setScene(pauseMenuScene);
-        WritableImage image = new WritableImage((int) WINDOW_WIDTH, (int) WINDOW_HEIGHT);
+        WritableImage image = new WritableImage(WINDOW_WIDTH, WINDOW_HEIGHT);
         gameScene.snapshot(image);
         ((GridPane) (pauseMenuScene.getRoot()))
-                .setBackground(new Background(new BackgroundImage(
-                        image,
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundPosition.CENTER,
-                        BackgroundSize.DEFAULT)));
+                .setBackground(
+                        new Background(
+                                new BackgroundImage(
+                                        image,
+                                        BackgroundRepeat.NO_REPEAT,
+                                        BackgroundRepeat.NO_REPEAT,
+                                        BackgroundPosition.CENTER,
+                                        BackgroundSize.DEFAULT)));
+        tickLine.pause();
     }
 
-    private void resumeGame() {
-        primaryStage.setScene(gameScene);
-        gameProcessor.play();
+    private void arrangeTickLineAndDrawnObjects() {
+        tickLine.getKeyFrames().clear();
+        gameObjectsToDraw.getChildren().clear();
+
+        IField field = game.getField();
+        for (int x = 0; x < field.getWidth(); x++) {
+            for (int y = 0; y < field.getHeight(); y++) {
+                Node node;
+                Vector loc = new Vector(x, y);
+                IFieldObject object = field.getObjectAt(loc);
+                if (object == null)
+                    continue;
+                if (drawnObjects.containsKey(object)) {
+                    node = drawnObjects.get(object);
+                    tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
+                            new KeyValue(node.translateXProperty(),
+                                    ((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT),
+                            new KeyValue(node.translateYProperty(),
+                                    ((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT)));
+                } else {
+                    node = howToPaint.get(object.getClass()).get();
+                    drawnObjects.put(object, node);
+                    node.translateXProperty().setValue(((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT);
+                    node.translateYProperty().setValue(((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT);
+                }
+                gameObjectsToDraw.getChildren().add(node);
+            }
+        }
+        for (Vector part : field.getSnake(0).getTrace())
+        {
+            Node node;
+            if (drawnSnakes.containsKey(part)) {
+                node = drawnSnakes.get(part);
+                tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
+                        new KeyValue(node.translateXProperty(),
+                                ((double) part.getX()) / field.getWidth() * WINDOW_HEIGHT),
+                        new KeyValue(node.translateYProperty(),
+                                ((double) part.getY()) / field.getHeight() * WINDOW_HEIGHT)));
+            } else {
+                double r = cellSize / 2;
+                node = new Circle(r, r, r);
+                ((Circle)node).setStrokeType(StrokeType.INSIDE);
+                ((Circle)node).setStroke(Color.BLACK);
+                ((Circle)node).setStrokeWidth(strokeWidth);
+                ((Circle)node).setFill(Color.LIGHTGREEN);
+                drawnSnakes.put(part, node);
+                node.translateXProperty().setValue(((double) part.getX()) / field.getWidth() * WINDOW_HEIGHT);
+                node.translateYProperty().setValue(((double) part.getY()) / field.getHeight() * WINDOW_HEIGHT);
+            }
+            gameObjectsToDraw.getChildren().add(node);
+        }
     }
 
+    private void handle(IField field) {
+        boolean hasApple = false;
+        for (int x = 0; x < field.getWidth(); x++) {
+            for (int y = 0; y < field.getHeight(); y++) {
+                if (field.getObjectAt(new Vector(x, y)) instanceof Apple) {
+                    hasApple = true;
+                    break;
+                }
+            }
+        }
+        if (!hasApple) {
+            Vector location = field.findEmptyCell();
+
+            //noinspection MagicNumber
+            game.getField().addObject(new Apple(location, 1 + (new Random()).nextInt(2)));
+        }
+    }
 
     private void initPauseMenuScene() {
         Button[] buttons = new Button[]{
@@ -128,11 +239,15 @@ public class GameApplication extends Application {
                 new Button("Quit to Main Menu")
         };
 
-        buttons[0].setOnAction(event -> resumeGame());
+        buttons[0].setOnAction(event -> {
+            primaryStage.setScene(gameScene);
+            tickLine.play();
+        });
+
         buttons[1].setOnAction(event -> startGame());
+
         buttons[2].setOnAction(event -> {
-            gameProcessor = null;
-            gameScene = null;
+            tickLine.stop();
             primaryStage.setScene(mainMenuScene);
         });
 
@@ -196,23 +311,11 @@ public class GameApplication extends Application {
         primaryStage.setScene(mainMenuScene);
         primaryStage.show();
 
-        setUpPrimaryStageSize();
-    }
-
-    private void setUpPrimaryStageSize() {
-        Scene scene = primaryStage.getScene();
         primaryStage.setWidth(WINDOW_WIDTH
-                + scene.getWindow().getWidth()
-                - scene.getWidth());
+                + mainMenuScene.getWindow().getWidth()
+                - mainMenuScene.getWidth());
         primaryStage.setHeight(WINDOW_HEIGHT
-                + scene.getWindow().getHeight()
-                - scene.getHeight());
-
-//        primaryStage.setWidth(WINDOW_WIDTH
-//                + mainMenuScene.getWindow().getWidth()
-//                - mainMenuScene.getWidth());
-//        primaryStage.setHeight(WINDOW_HEIGHT
-//                + mainMenuScene.getWindow().getHeight()
-//                - mainMenuScene.getHeight());
+                + mainMenuScene.getWindow().getHeight()
+                - mainMenuScene.getHeight());
     }
 }

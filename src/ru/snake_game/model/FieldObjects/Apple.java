@@ -1,26 +1,20 @@
 package ru.snake_game.model.FieldObjects;
 
-import ru.snake_game.model.Interfaces.IField;
-import ru.snake_game.model.Interfaces.ISnakeHead;
+import ru.snake_game.model.Interfaces.ISnake;
 import ru.snake_game.model.util.Vector;
 
-public class Apple extends AbstractFieldObject {
+public class Apple extends FieldObject {
     private final int foodValue;
-    private IField field;
 
-    public Apple(Vector location, IField field, int foodValue) {
+    public Apple(Vector location, int foodValue) {
         super(location);
-        if (field == null)
-            throw new IllegalArgumentException("field should not be null.");
         if (foodValue < 1)
             throw new IllegalArgumentException("foodValue should be positive.");
         this.foodValue = foodValue;
-        this.field = field;
     }
 
     @Override
-    public void snakeInteract(ISnakeHead snake) {
+    public void interact(ISnake snake) {
         snake.eat(foodValue);
-        field.eraseAt(getLocation());
     }
 }

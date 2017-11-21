@@ -1,7 +1,6 @@
 package ru.snake_game.model.util;
 
-@SuppressWarnings("InstanceVariableNamingConvention")
-public class Direction {
+public class Directions {
     public final static Vector NONE = new Vector(0, 0);
     public final static Vector UP = new Vector(0, -1);
     public final static Vector DOWN = new Vector(0, 1);
@@ -12,11 +11,11 @@ public class Direction {
     {
         try
         {
-            return (Vector)Direction.class.getField(text.toUpperCase()).get(null);
+            return (Vector)Directions.class.getField(text.toUpperCase()).get(null);
         }
         catch (Exception ex)
         {
-            return Direction.NONE;
+            throw new IllegalArgumentException("Wrong direction name.");
         }
     }
 }

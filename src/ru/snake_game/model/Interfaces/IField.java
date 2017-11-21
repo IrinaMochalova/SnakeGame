@@ -2,18 +2,17 @@ package ru.snake_game.model.Interfaces;
 
 import ru.snake_game.model.util.Vector;
 
-public interface IField extends Iterable<IFieldObject> {
+public interface IField{
     int getWidth();
-
     int getHeight();
 
     IFieldObject getObjectAt(Vector location);
-
-    IFieldObject getObjectAt(int x, int y);
-
     void addObject(IFieldObject object);
+    void removeAt(Vector location);
 
-    ISnakeHead getSnakeHead();
+    int getSnakesCount();
+    int addSnake(ISnake snake);
+    ISnake getSnake(int number);
 
-    void eraseAt(Vector location);
+    public Vector findEmptyCell();
 }

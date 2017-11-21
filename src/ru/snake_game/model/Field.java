@@ -1,80 +1,84 @@
 package ru.snake_game.model;
 
-import org.jetbrains.annotations.NotNull;
-import ru.snake_game.model.FieldObjects.SnakeHead;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.Interfaces.ISnakeHead;
+import ru.snake_game.model.Interfaces.ISnake;
 import ru.snake_game.model.util.Vector;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.HashSet;
+import java.util.Random;
 
-public class Field implements IField, Iterable<IFieldObject> {
-    private ArrayList<IFieldObject> field;
-    private int height;
-    private int width;
+public class Field implements IField {
+    private IFieldObject[][] field;
+    private ArrayList<ISnake> snakes;
 
     public Field(int height, int width) {
         if (height < 1 || width < 1)
-            throw new IllegalArgumentException("Field can`t to be built, incorrect parameters");
-        this.height = height;
-        this.width = width;
-        int n = width * height;
-        field = new ArrayList<>(n);
-        for (int i = 0; i < n; i++)
-            field.add(null);
+            throw new IllegalArgumentException("Incorrect field size.");
+        field = new IFieldObject[width][];
+        for (int i = 0; i < field.length; i++)
+            field[i] = new IFieldObject[height];
+        snakes = new ArrayList<>();
     }
 
-    @Override
     public IFieldObject getObjectAt(int x, int y) {
-        int index = getIndexInField(x, y);
-        return field.get(index);
+        return field[x][y];
     }
 
-    @Override
     public IFieldObject getObjectAt(Vector location) {
         return getObjectAt(location.getX(), location.getY());
     }
 
-    @Override
     public void addObject(IFieldObject object) {
-        Vector loc = object.getLocation();
-        field.set(getIndexInField(loc.getX(), loc.getY()), object);
+        Vector location = object.getLocation();
+        if (getObjectAt(location) != null)
+            throw new IllegalArgumentException("This location is already used.");
+        field[location.getX()][location.getY()] = object;
     }
 
-    @Override
     public int getWidth() {
-        return width;
+        return field.length;
     }
 
-    @Override
     public int getHeight() {
-        return height;
+        return field[0].length;
     }
 
-    @Override
-    public ISnakeHead getSnakeHead() {
-        SnakeHead snakeHead = null;
-        for (IFieldObject fieldObject : field)
-            if (fieldObject instanceof SnakeHead)
-                snakeHead = (SnakeHead) fieldObject;
-        return snakeHead;
+    public int getSnakesCount() {
+        return snakes.size();
     }
 
-    @Override
-    public void eraseAt(Vector location) {
-        field.set(getIndexInField(location.getX(), location.getY()), null);
+    public int addSnake(ISnake snake){
+        snakes.add(snake);
+        return snakes.size() - 1;
     }
 
-    private int getIndexInField(int x, int y) {
-        return y * width + x;
+    public ISnake getSnake(int number){
+        if (number >= snakes.size())
+            throw new IndexOutOfBoundsException("Snake with given number doesn't exist.");
+        return snakes.get(number);
     }
 
-    @NotNull
-    @Override
-    public Iterator<IFieldObject> iterator() {
-        return field.stream().filter(Objects::nonNull).iterator();
+    public void removeAt(Vector location) {
+        field[location.getX()][location.getY()] = null;
+    }
+
+    public Vector findEmptyCell() {
+        HashSet<Vector> snakeParts = new HashSet<>();
+        for (ISnake snake : snakes) {
+            for (Vector part : snake.getTrace())
+                snakeParts.add(part);
+        }
+        ArrayList<Vector> freeCells = new ArrayList<>();
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                Vector location = new Vector(x, y);
+                if (getObjectAt(location) == null && !freeCells.contains(location))
+                    freeCells.add(location);
+            }
+        }
+        int index = (new Random()).nextInt(freeCells.size());
+        return freeCells.get(index);
     }
 }

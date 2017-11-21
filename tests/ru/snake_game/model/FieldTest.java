@@ -3,11 +3,10 @@ package ru.snake_game.model;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import ru.snake_game.model.FieldObjects.SnakeHead;
 import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.IFieldObject;
+import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
-import ru.snake_game.model.util.Direction;
 
 import static org.junit.Assert.*;
 
@@ -65,7 +64,7 @@ public class FieldTest {
     @Test
     public void getSnakeHead() throws Exception {
         Vector location = new Vector(0,1);
-        field.addObject(new SnakeHead(location, null, Direction.DOWN, field));
+        field.addObject(new SnakeHead(location, null, Directions.DOWN, field));
         assertEquals(location, field.getSnakeHead().getLocation());
     }
 
