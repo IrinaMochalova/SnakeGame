@@ -22,12 +22,16 @@ public class Field implements IField {
         snakes = new ArrayList<>();
     }
 
-    public IFieldObject getObjectAt(int x, int y) {
-        return field[x][y];
+    public int getWidth() {
+        return field.length;
+    }
+
+    public int getHeight() {
+        return field[0].length;
     }
 
     public IFieldObject getObjectAt(Vector location) {
-        return getObjectAt(location.getX(), location.getY());
+        return field[location.getX()][location.getY()];
     }
 
     public void addObject(IFieldObject object) {
@@ -37,12 +41,8 @@ public class Field implements IField {
         field[location.getX()][location.getY()] = object;
     }
 
-    public int getWidth() {
-        return field.length;
-    }
-
-    public int getHeight() {
-        return field[0].length;
+    public void removeObjectAt(Vector location) {
+        field[location.getX()][location.getY()] = null;
     }
 
     public int getSnakesCount() {
@@ -60,25 +60,25 @@ public class Field implements IField {
         return snakes.get(number);
     }
 
-    public void removeAt(Vector location) {
-        field[location.getX()][location.getY()] = null;
-    }
-
     public Vector findEmptyCell() {
-        HashSet<Vector> snakeParts = new HashSet<>();
-        for (ISnake snake : snakes) {
-            for (Vector part : snake.getTrace())
-                snakeParts.add(part);
-        }
+        HashSet<Vector> snakeCells = getAllSnakeCells();
         ArrayList<Vector> freeCells = new ArrayList<>();
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {
                 Vector location = new Vector(x, y);
-                if (getObjectAt(location) == null && !freeCells.contains(location))
+                if (getObjectAt(location) == null && !snakeCells.contains(location))
                     freeCells.add(location);
             }
         }
         int index = (new Random()).nextInt(freeCells.size());
         return freeCells.get(index);
+    }
+
+    public HashSet<Vector> getAllSnakeCells() {
+        HashSet<Vector> snakeCells = new HashSet<>();
+        for (ISnake snake : snakes) {
+            snakeCells.addAll(snake.getTrace());
+        }
+        return snakeCells;
     }
 }

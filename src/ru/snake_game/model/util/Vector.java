@@ -60,6 +60,10 @@ public class Vector
         return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2));
     }
 
+    public static double getManhattanDistance(Vector v1, Vector v2) {
+        return Math.abs(v1.x - v2.x) + Math.abs(v1.y - v2.y);
+    }
+
     public static Vector parse(String text, String delimeter) {
         String[] parts = text.split(delimeter);
         int x = Integer.parseInt(parts[0]);

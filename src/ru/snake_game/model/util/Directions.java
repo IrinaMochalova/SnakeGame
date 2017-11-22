@@ -7,8 +7,7 @@ public class Directions {
     public final static Vector LEFT = new Vector(-1, 0);
     public final static Vector RIGHT = new Vector(1, 0);
 
-    public static Vector parse(String text)
-    {
+    public static Vector parse(String text) {
         try
         {
             return (Vector)Directions.class.getField(text.toUpperCase()).get(null);

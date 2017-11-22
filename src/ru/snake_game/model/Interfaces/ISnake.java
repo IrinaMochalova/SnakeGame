@@ -2,6 +2,8 @@ package ru.snake_game.model.Interfaces;
 
 import ru.snake_game.model.util.Vector;
 
+import java.util.HashSet;
+
 public interface ISnake {
     Vector getDirection();
     void setDirection(Vector direction);
@@ -10,10 +12,8 @@ public interface ISnake {
     void move();
     void eat(int growValue);
 
-    int length();
     boolean isAlive();
-    boolean willGrow();
 
     Vector getHead();
-    Vector[] getTrace();
+    HashSet<Vector> getTrace();
 }

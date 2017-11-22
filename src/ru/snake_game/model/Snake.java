@@ -2,6 +2,8 @@ package ru.snake_game.model;
 
 import ru.snake_game.model.Interfaces.ISnake;
 import ru.snake_game.model.util.Vector;
+
+import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Snake implements ISnake {
@@ -16,10 +18,6 @@ public class Snake implements ISnake {
         this.direction = direction;
         body = new LinkedList<>();
         body.addFirst(location);
-    }
-
-    public int length() {
-        return body.size();
     }
 
     public Vector getDirection() {
@@ -43,10 +41,6 @@ public class Snake implements ISnake {
         lengthQueue += growValue;
     }
 
-    public boolean willGrow() {
-        return lengthQueue > 0;
-    }
-
     public void move() {
         Vector head = body.peekFirst();
         body.addFirst(head.add(direction));
@@ -61,9 +55,9 @@ public class Snake implements ISnake {
         return body.peekFirst();
     }
 
-    public Vector[] getTrace() {
-        Vector[] trace = new Vector[length()];
-        body.toArray(trace);
+    public HashSet<Vector> getTrace() {
+        HashSet<Vector> trace = new HashSet<>();
+        trace.addAll(body);
         return trace;
     }
 }
