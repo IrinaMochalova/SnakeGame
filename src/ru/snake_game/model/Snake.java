@@ -20,6 +20,10 @@ public class Snake implements ISnake {
         body.addFirst(location);
     }
 
+    public int length() {
+        return body.size();
+    }
+
     public Vector getDirection() {
         return direction;
     }

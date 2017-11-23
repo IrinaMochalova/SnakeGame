@@ -19,7 +19,7 @@ public class GameTest {
     private Field field;
     private Snake snake;
 
-    @Before
+    /*@Before
     public void setUp() throws Exception {
         FieldMakers fieldMakers = new FieldMakers();
         field = fieldMakers.makeBoardedField(6,6);
@@ -72,5 +72,5 @@ public class GameTest {
         assertTrue(snake.isAlive());
         assertEquals(12, snake.length());
     }
-
+*/
 }

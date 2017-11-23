@@ -34,6 +34,10 @@ public class Field implements IField {
         return field[location.getX()][location.getY()];
     }
 
+    public IFieldObject getObjectAt(int x, int y) {
+        return field[x][y];
+    }
+
     public void addObject(IFieldObject object) {
         Vector location = object.getLocation();
         if (getObjectAt(location) != null)

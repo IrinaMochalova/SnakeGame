@@ -28,20 +28,19 @@ public class AISnake extends Snake {
         Vector head = getHead();
         findApple(head);
         HashSet<Vector> snakes = field.getAllSnakeCells();
-        Vector direction = getDirection();
-        double distance = Vector.getDistance(head.add(direction), target);
+        Vector direction = this.getDirection();
+        double distance = Vector.getManhattanDistance(head.add(direction), target);
         for (Vector newDirection : new Vector[] {Directions.LEFT, Directions.RIGHT, Directions.UP, Directions.DOWN}) {
             Vector newHead = head.add(newDirection);
             if (snakes.contains(newHead))
                 continue;
-            double newDistance = Vector.getDistance(newHead, target);
-            if (newDistance <= distance) {
+            double newDistance = Vector.getManhattanDistance(newHead, target);
+            if (newDistance < distance && Vector.getScalarProduct(direction, newDirection) == 0) {
                 distance = newDistance;
                 direction = newDirection;
-                System.out.println(direction);
             }
         }
-        setDirection(direction);
+        this.setDirection(direction);
     }
 
     private void findApple(Vector location) {
@@ -55,7 +54,7 @@ public class AISnake extends Snake {
                 IFieldObject object = field.getObjectAt(newTarget);
                 if (object == null || !(object instanceof Apple))
                     continue;
-                double newDistance = Vector.getDistance(newTarget, location);
+                double newDistance = Vector.getManhattanDistance(newTarget, location);
                 if (newDistance < distance) {
                     apple = newTarget;
                     distance = newDistance;
