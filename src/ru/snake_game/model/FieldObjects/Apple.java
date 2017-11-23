@@ -14,7 +14,8 @@ public class Apple extends FieldObject {
     }
 
     @Override
-    public void interact(ISnake snake) {
+    public boolean interact(ISnake snake) {
         snake.eat(foodValue);
+        return true;
     }
 }

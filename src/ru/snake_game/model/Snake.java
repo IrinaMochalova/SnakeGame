@@ -1,5 +1,6 @@
 package ru.snake_game.model;
 
+import ru.snake_game.controller.Interfaces.ISnakeController;
 import ru.snake_game.model.Interfaces.ISnake;
 import ru.snake_game.model.util.Vector;
 
@@ -7,30 +8,21 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Snake implements ISnake {
+    private ISnakeController controller;
     private LinkedList<Vector> body;
-    private Vector direction;
     private int lengthQueue;
     private boolean isAlive;
 
-    public Snake(Vector location, Vector direction) {
+    public Snake(Vector location, ISnakeController controller) {
         lengthQueue = 0;
         isAlive = true;
-        this.direction = direction;
         body = new LinkedList<>();
         body.addFirst(location);
+        this.controller = controller;
     }
 
     public int length() {
         return body.size();
-    }
-
-    public Vector getDirection() {
-        return direction;
-    }
-
-    public void setDirection(Vector direction) {
-        if (Vector.getScalarProduct(direction, this.direction) == 0)
-            this.direction = direction;
     }
 
     public boolean isAlive() {
@@ -41,12 +33,18 @@ public class Snake implements ISnake {
         isAlive = false;
     }
 
-    public void eat(int growValue) {
-        lengthQueue += growValue;
+    public void eat(int foodValue) {
+        while (foodValue < 0) {
+            body.removeLast();
+            foodValue++;
+        }
+
+        lengthQueue += foodValue;
     }
 
     public void move() {
         Vector head = body.peekFirst();
+        Vector direction = controller.calculateDirection(head);
         body.addFirst(head.add(direction));
 
         if (lengthQueue > 0)

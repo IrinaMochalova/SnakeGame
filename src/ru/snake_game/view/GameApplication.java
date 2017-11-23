@@ -23,6 +23,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import ru.snake_game.controller.KeyboardSnakeController;
 import ru.snake_game.model.*;
 import ru.snake_game.model.FieldObjects.*;
 import ru.snake_game.model.Interfaces.*;
@@ -44,13 +45,13 @@ public class GameApplication extends Application {
     private Scene pauseMenuScene;
     private SubScene gameArea;
 
-
     private Duration tickDuration = new Duration(250);
     private double cellSize;
     private double strokeWidth;
 
-    private ISnake snake;
     private IGame game;
+    private int snakeNumber;
+    private KeyboardSnakeController snakeController;
 
     private Timeline tickLine;
     private Group gameObjectsToDraw;
@@ -102,8 +103,7 @@ public class GameApplication extends Application {
         tickLine.setOnFinished(event -> {
             game.tick();
             arrangeTickLineAndDrawnObjects();
-            if (snake.isAlive())
-                tickLine.play();
+            tickLine.play();
         });
 
         Group root = new Group();
@@ -116,27 +116,26 @@ public class GameApplication extends Application {
         gameArea.setFill(Color.LIGHTGRAY);
         root.getChildren().add(gameArea);
 
-        HashMap<KeyCode, Runnable> keyPressActions = new HashMap<>();
-        keyPressActions.put(KeyCode.ESCAPE, this::pauseGame);
-        keyPressActions.put(KeyCode.UP, () -> snake.setDirection(Directions.UP));
-        keyPressActions.put(KeyCode.DOWN, () -> snake.setDirection(Directions.DOWN));
-        keyPressActions.put(KeyCode.LEFT, () -> snake.setDirection(Directions.LEFT));
-        keyPressActions.put(KeyCode.RIGHT, () -> snake.setDirection(Directions.RIGHT));
-
         gameScene.setOnKeyPressed(event -> {
-            Runnable toDo = keyPressActions.get(event.getCode());
-            if (toDo != null)
-                toDo.run();
+            KeyCode code = event.getCode();
+            if (code == KeyCode.ESCAPE)
+                pauseGame();
+            else
+                snakeController.pressKey(code);
         });
     }
 
     private void startGame() {
         IField field = FieldMakers.makeBoardedField(15, 15);
 
-        snake = new Snake(new Vector(4, 4), Directions.RIGHT);
-        field.addSnake(snake);
-        //field.addSnake(new AISnake(new Vector(8, 8), Directions.RIGHT, field));
-        field.addSnake(new AISnake(new Vector(10, 10), Directions.LEFT, field));
+        HashMap<KeyCode, Vector> keys = new HashMap<>();
+        keys.put(KeyCode.UP, Directions.UP);
+        keys.put(KeyCode.DOWN, Directions.DOWN);
+        keys.put(KeyCode.LEFT, Directions.LEFT);
+        keys.put(KeyCode.RIGHT, Directions.RIGHT);
+
+        snakeController = new KeyboardSnakeController(field, keys, Directions.RIGHT);
+        snakeNumber = field.addSnake(new Snake(new Vector(4, 4), snakeController));
 
         HashSet<IGenerator> generators = new HashSet<>();
         generators.add(new Generator<>(Apple.class, field));
