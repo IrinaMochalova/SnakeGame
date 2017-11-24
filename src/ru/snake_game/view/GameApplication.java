@@ -134,7 +134,7 @@ public class GameApplication extends Application {
         IField field = FieldMakers.makeBoardedField(15, 15);
 
         snake = new Snake(new Vector(4, 4), Directions.RIGHT);
-        field.addSnake(snake);
+        //field.addSnake(snake);
         //field.addSnake(new AISnake(new Vector(8, 8), Directions.RIGHT, field));
         field.addSnake(new AISnake(new Vector(10, 10), Directions.LEFT, field));
 
