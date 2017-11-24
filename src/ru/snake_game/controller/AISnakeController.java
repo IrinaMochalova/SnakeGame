@@ -14,29 +14,42 @@ import java.util.HashSet;
 
 public class AISnakeController implements ISnakeController {
     private IField field;
+    private Vector direction;
 
-    AISnakeController(IField field){
+    public AISnakeController(IField field, Vector initialDirection){
         this.field = field;
+        this.direction = initialDirection;
     }
 
-    public Vector calculateDirecion(Vector headLocation) {
-        Vector direction = headLocation;
-        double distance = Double.MAX_VALUE;
+    public Vector calculateDirection(Vector headLocation) {
         Vector apple = findApple(headLocation);
+        if (apple == null) {
+            if (field.getObjectAt(headLocation.add(direction)) instanceof Wall) {
+                for (Vector newDirection : Directions.ALL) {
+                    if(Vector.getScalarProduct(direction, newDirection) == 0) {
+                        HashSet<Vector> snakes = field.getAllSnakeCells();
+                        Vector newLocation = headLocation.add(newDirection);
+                        if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation)) {
+                            continue;
+                        }
+                        direction = newDirection;
+                        return direction;
+                    }
+                }
+            }
+            else
+                return direction;
+        }
+        double distance = apple != null ? Vector.getManhattanDistance(headLocation.add(direction), apple) : 0;
         for(Vector newDirection : Directions.ALL) {
             if(Vector.getScalarProduct(direction, newDirection) == 0) {
                 HashSet<Vector> snakes = field.getAllSnakeCells();
                 Vector newLocation = headLocation.add(newDirection);
-                if (field.getObjectAt(newLocation) instanceof Wall && snakes.contains(newLocation))
+                if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation))
                     continue;
-                if(apple != null) {
-                    double newDistance = Vector.getDistance(headLocation, apple);
-                    if (newDistance < distance) {
-                        distance = newDistance;
-                        direction = newDirection;
-                    }
-                }
-                else {
+                double newDistance = Vector.getManhattanDistance(newLocation, apple);
+                if (newDistance < distance) {
+                    distance = newDistance;
                     direction = newDirection;
                 }
             }
