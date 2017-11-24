@@ -5,12 +5,11 @@ import ru.snake_game.model.util.Vector;
 import java.util.HashSet;
 
 public interface ISnake {
-    Vector getDirection();
-    void setDirection(Vector direction);
+    int length();
 
     void kill();
     void move();
-    void eat(int growValue);
+    void eat(int foodValue);
 
     boolean isAlive();
 

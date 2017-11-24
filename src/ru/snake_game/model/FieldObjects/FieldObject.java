@@ -21,5 +21,7 @@ public abstract class FieldObject implements IFieldObject {
         this.location = location;
     }
 
-    public void interact(ISnake snake) {}
+    public boolean interact(ISnake snake) {
+        return false;
+    }
 }

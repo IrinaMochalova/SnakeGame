@@ -9,7 +9,8 @@ public class Wall extends FieldObject {
     }
 
     @Override
-    public void interact(ISnake snake) {
+    public boolean interact(ISnake snake) {
         snake.kill();
+        return false;
     }
 }
