@@ -1,7 +1,5 @@
 package ru.snake_game.model;
 
-import ru.snake_game.model.FieldObjects.Apple;
-import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
@@ -24,38 +22,46 @@ public class Game implements IGame {
 
     public void tick() {
         useGenerators();
-        for (int number = 0; number < field.getSnakesCount(); number++) {
-            ISnake snake = field.getSnake(number);
-            if (!snake.isAlive()) {
-                if (snake.length() > 0) {
-                    for (Vector part : snake.getTrace()) {
-                        if (field.getObjectAt(part) == null)
-                            field.addObject(new Apple(part));
-                        snake.eat(-snake.length());
-                    }
-                }
+        checkCollisions();
+        updateObjects();
+        moveSnakes();
+    }
+
+    public ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
+        ArrayList<Vector> directions = new ArrayList<>();
+        for (Vector newDirection : Directions.ALL) {
+            if (field.getObjectAt(location.add(newDirection)) == null &&
+                Vector.getScalarProduct(direction, newDirection) == 0)
+                directions.add(newDirection);
+        }
+        return directions;
+    }
+
+    protected void moveSnakes() {
+        for (ISnakeController controller : field.getSnakes())
+            controller.move();
+    }
+
+    protected void checkCollisions() {
+        for (ISnakeController controller : field.getSnakes()) {
+            Vector head = controller.getHead();
+            Vector location = head.add(controller.getDirection());
+            IFieldObject object = field.getObjectAt(location);
+            if (object == null)
                 continue;
-            }
-            snake.move();
-            Vector head = snake.getHead();
-            IFieldObject object = field.getObjectAt(head);
-            if (object != null && object.interact(snake))
-                field.removeObjectAt(head);
-            if (field.getAllSnakeCells().contains(head) && !snake.getTrace().contains(head))
-                snake.kill();
+            object.interact(controller);
         }
     }
 
-    public ArrayList<Vector> getAvailableDirections(int snakeNumber) {
-        ISnake snake = field.getSnake(snakeNumber);
-        Vector head = snake.getHead();
-        ArrayList<Vector> available = new ArrayList<>();
-        HashSet<Vector> snakes = field.getAllSnakeCells();
-        for (Vector direction : Directions.ALL) {
-            if (!snakes.contains(snake) && !(field.getObjectAt(head) instanceof Wall))
-                available.add(direction);
+    protected void updateObjects() {
+        for (int x = 0; x < field.getWidth(); x++) {
+            for (int y = 0; y < field.getHeight(); y++) {
+                Vector location = new Vector(x, y);
+                IFieldObject object = field.getObjectAt(location);
+                if (object != null && !object.isActive())
+                    field.removeObjectAt(location);
+            }
         }
-        return available;
     }
 
     protected void useGenerators() {

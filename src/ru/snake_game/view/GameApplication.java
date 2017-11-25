@@ -23,8 +23,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import ru.snake_game.controller.AISnakeController;
-import ru.snake_game.controller.KeyboardSnakeController;
+import ru.snake_game.controller.AIController;
+import ru.snake_game.controller.KeyboardController;
 import ru.snake_game.model.*;
 import ru.snake_game.model.FieldObjects.*;
 import ru.snake_game.model.Interfaces.*;
@@ -51,13 +51,11 @@ public class GameApplication extends Application {
     private double strokeWidth;
 
     private IGame game;
-    private int snakeNumber;
-    private KeyboardSnakeController snakeController;
-    private AISnakeController aiSnakeController;
+    private KeyboardController controller;
 
     private Timeline tickLine;
     private Group gameObjectsToDraw;
-    private HashMap<Object, Node> drawnObjects;
+    private HashMap<IFieldObject, Node> drawnObjects;
     private HashMap<Class, Supplier<Node>> howToPaint;
 
     @Override
@@ -89,7 +87,7 @@ public class GameApplication extends Application {
             res.setFill(Color.RED);
             return res;
         });
-        howToPaint.put(Vector.class, () -> {
+        howToPaint.put(SnakePart.class, () -> {
             double r = cellSize / 2;
             Circle res = new Circle(r, r, r);
             res.setStrokeType(StrokeType.INSIDE);
@@ -123,12 +121,16 @@ public class GameApplication extends Application {
             if (code == KeyCode.ESCAPE)
                 pauseGame();
             else
-                snakeController.pressKey(code);
+                controller.pressKey(code);
         });
     }
 
     private void startGame() {
         IField field = FieldMakers.makeBoardedField(15, 15);
+        HashSet<IGenerator> generators = new HashSet<>();
+        generators.add(new Generator<>(Apple.class, field));
+
+        game = new Game(field, generators);
 
         HashMap<KeyCode, Vector> keys = new HashMap<>();
         keys.put(KeyCode.UP, Directions.UP);
@@ -136,14 +138,10 @@ public class GameApplication extends Application {
         keys.put(KeyCode.LEFT, Directions.LEFT);
         keys.put(KeyCode.RIGHT, Directions.RIGHT);
 
-        snakeController = new KeyboardSnakeController(field, keys, Directions.RIGHT);
-        aiSnakeController = new AISnakeController(field, Directions.RIGHT);
-        field.addSnake(new Snake(new Vector(4, 4), snakeController));
-        field.addSnake(new Snake(new Vector(10, 10), aiSnakeController));
+        controller = new KeyboardController(game, keys, Directions.RIGHT);
 
-        HashSet<IGenerator> generators = new HashSet<>();
-        generators.add(new Generator<>(Apple.class, field));
-        game = new Game(field, generators);
+        ISnakeController snake = new SnakeController(field, new Vector(4, 4), controller);
+        field.addSnake(snake);
 
         drawnObjects = new HashMap<>();
         cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();
@@ -172,36 +170,27 @@ public class GameApplication extends Application {
         gameObjectsToDraw.getChildren().clear();
 
         IField field = game.getField();
-        ArrayList<Object> usedObjects = new ArrayList<>();
         for (int x = 0; x < field.getWidth(); x++) {
             for (int y = 0; y < field.getHeight(); y++) {
-                IFieldObject object = field.getObjectAt(new Vector(x, y));
-                if (object != null) {
-                    usedObjects.add(object);
+                Vector loc = new Vector(x, y);
+                IFieldObject object = field.getObjectAt(loc);
+                if (object == null)
+                    continue;
+                Node node;
+                if (drawnObjects.containsKey(object)) {
+                    node = drawnObjects.get(object);
+                    tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
+                            new KeyValue(node.translateXProperty(), ((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT),
+                            new KeyValue(node.translateYProperty(), ((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT)
+                    ));
+                } else {
+                    node = howToPaint.get(object.getClass()).get();
+                    drawnObjects.put(object, node);
+                    node.translateXProperty().setValue(((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT);
+                    node.translateYProperty().setValue(((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT);
                 }
+                gameObjectsToDraw.getChildren().add(node);
             }
-        }
-        for (int number = 0; number < field.getSnakesCount(); number++) {
-            for (Vector part : field.getSnake(number).getTrace()) {
-                usedObjects.add(part);
-            }
-        }
-        for (Object object : usedObjects) {
-            Node node;
-            Vector loc = object instanceof IFieldObject ? ((IFieldObject)object).getLocation() : (Vector)object;
-            if (drawnObjects.containsKey(object)) {
-                node = drawnObjects.get(object);
-                tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
-                        new KeyValue(node.translateXProperty(), ((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT),
-                        new KeyValue(node.translateYProperty(), ((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT)
-                ));
-            } else {
-                node = howToPaint.get(object.getClass()).get();
-                drawnObjects.put(object, node);
-                node.translateXProperty().setValue(((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT);
-                node.translateYProperty().setValue(((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT);
-            }
-            gameObjectsToDraw.getChildren().add(node);
         }
     }
 

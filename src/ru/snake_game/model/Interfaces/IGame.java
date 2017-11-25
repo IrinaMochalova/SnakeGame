@@ -9,5 +9,5 @@ public interface IGame{
 
     IField getField();
 
-    ArrayList<Vector> getAvailableDirections(int snakeNumber);
+    ArrayList<Vector> getAvailableDirections(Vector location, Vector direction);
 }

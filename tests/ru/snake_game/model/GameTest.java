@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.snake_game.model.FieldObjects.Apple;
 import ru.snake_game.model.FieldObjects.Wall;
-import ru.snake_game.model.Interfaces.ISnake;
 import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.FieldMakers;
 import ru.snake_game.model.util.Vector;

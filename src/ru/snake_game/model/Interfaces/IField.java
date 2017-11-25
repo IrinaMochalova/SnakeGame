@@ -4,7 +4,7 @@ import ru.snake_game.model.util.Vector;
 
 import java.util.HashSet;
 
-public interface IField{
+public interface IField {
     int getWidth();
     int getHeight();
 
@@ -12,10 +12,9 @@ public interface IField{
     void addObject(IFieldObject object);
     void removeObjectAt(Vector location);
 
-    int getSnakesCount();
-    int addSnake(ISnake snake);
-    ISnake getSnake(int number);
+    void addSnake(ISnakeController controller);
+    void removeSnake(ISnakeController controller);
+    HashSet<ISnakeController> getSnakes();
 
     Vector findEmptyCell();
-    HashSet<Vector> getAllSnakeCells();
 }

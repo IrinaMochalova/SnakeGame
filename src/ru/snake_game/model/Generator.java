@@ -15,7 +15,7 @@ public class Generator<T extends IFieldObject> implements IGenerator{
     }
 
     public void process() {
-        int missing = field.getSnakesCount() - countObjects();
+        int missing = field.getSnakes().size() - countObjects();
         for (int i = 0; i < missing; i++) {
             Vector emptyCell = field.findEmptyCell();
             try {

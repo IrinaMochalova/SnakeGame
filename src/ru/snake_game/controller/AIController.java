@@ -1,22 +1,20 @@
 package ru.snake_game.controller;
 
-import ru.snake_game.controller.Interfaces.ISnakeController;
-import ru.snake_game.model.Field;
+import ru.snake_game.controller.Interfaces.IController;
 import ru.snake_game.model.FieldObjects.Apple;
 import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.Snake;
 import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
 
 import java.util.HashSet;
 
-public class AISnakeController implements ISnakeController {
+public class AIController {} /* implements IController {
     private IField field;
     private Vector direction;
 
-    public AISnakeController(IField field, Vector initialDirection){
+    public AIController(IField field, Vector initialDirection){
         this.field = field;
         this.direction = initialDirection;
     }
@@ -27,7 +25,7 @@ public class AISnakeController implements ISnakeController {
             if (field.getObjectAt(headLocation.add(direction)) instanceof Wall) {
                 for (Vector newDirection : Directions.ALL) {
                     if(Vector.getScalarProduct(direction, newDirection) == 0) {
-                        HashSet<Vector> snakes = field.getAllSnakeCells();
+                        HashSet<Vector> snakes = new HashSet<>();//field.getAllSnakeCells();
                         Vector newLocation = headLocation.add(newDirection);
                         if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation)) {
                             continue;
@@ -43,7 +41,7 @@ public class AISnakeController implements ISnakeController {
         double distance = apple != null ? Vector.getManhattanDistance(headLocation.add(direction), apple) : 0;
         for(Vector newDirection : Directions.ALL) {
             if(Vector.getScalarProduct(direction, newDirection) == 0) {
-                HashSet<Vector> snakes = field.getAllSnakeCells();
+                HashSet<Vector> snakes = new HashSet<>();//field.getAllSnakeCells();
                 Vector newLocation = headLocation.add(newDirection);
                 if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation))
                     continue;
@@ -78,3 +76,4 @@ public class AISnakeController implements ISnakeController {
         return headLocation == apple ? null : apple;
     }
 }
+*/

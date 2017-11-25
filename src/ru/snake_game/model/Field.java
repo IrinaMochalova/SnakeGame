@@ -2,7 +2,7 @@ package ru.snake_game.model;
 
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
-import ru.snake_game.model.Interfaces.ISnake;
+import ru.snake_game.model.Interfaces.ISnakeController;
 import ru.snake_game.model.util.Vector;
 
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class Field implements IField {
     private IFieldObject[][] field;
-    private ArrayList<ISnake> snakes;
+    private HashSet<ISnakeController> snakes;
 
     public Field(int height, int width) {
         if (height < 1 || width < 1)
@@ -19,7 +19,7 @@ public class Field implements IField {
         field = new IFieldObject[width][];
         for (int i = 0; i < field.length; i++)
             field[i] = new IFieldObject[height];
-        snakes = new ArrayList<>();
+        snakes = new HashSet<>();
     }
 
     public int getWidth() {
@@ -45,40 +45,28 @@ public class Field implements IField {
         field[location.getX()][location.getY()] = null;
     }
 
-    public int getSnakesCount() {
-        return snakes.size();
+    public void addSnake(ISnakeController controller){
+        snakes.add(controller);
     }
 
-    public int addSnake(ISnake snake){
-        snakes.add(snake);
-        return snakes.size() - 1;
+    public void removeSnake(ISnakeController controller) {
+        snakes.remove(controller);
     }
 
-    public ISnake getSnake(int number){
-        if (number >= snakes.size())
-            throw new IndexOutOfBoundsException("Snake with given number doesn't exist.");
-        return snakes.get(number);
+    public HashSet<ISnakeController> getSnakes() {
+        return snakes;
     }
 
     public Vector findEmptyCell() {
-        HashSet<Vector> snakeCells = getAllSnakeCells();
         ArrayList<Vector> freeCells = new ArrayList<>();
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {
                 Vector location = new Vector(x, y);
-                if (getObjectAt(location) == null && !snakeCells.contains(location))
+                if (getObjectAt(location) == null)
                     freeCells.add(location);
             }
         }
         int index = (new Random()).nextInt(freeCells.size());
         return freeCells.get(index);
-    }
-
-    public HashSet<Vector> getAllSnakeCells() {
-        HashSet<Vector> snakeCells = new HashSet<>();
-        for (ISnake snake : snakes) {
-            snakeCells.addAll(snake.getTrace());
-        }
-        return snakeCells;
     }
 }
