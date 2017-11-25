@@ -5,5 +5,7 @@ import ru.snake_game.model.util.Vector;
 public interface IFieldObject {
     Vector getLocation();
 
-    boolean interact(ISnake snake);
+    void interact(ISnakeController controller);
+
+    boolean isActive();
 }

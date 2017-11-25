@@ -32,8 +32,7 @@ public class Vector
 
     @Override
     public int hashCode() {
-        final int half = Integer.MAX_VALUE / 2;
-        return x % half + y % half;
+        return x ^ y;
     }
 
     public Vector clone() {

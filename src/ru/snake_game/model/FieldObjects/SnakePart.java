@@ -3,8 +3,8 @@ package ru.snake_game.model.FieldObjects;
 import ru.snake_game.model.Interfaces.ISnakeController;
 import ru.snake_game.model.util.Vector;
 
-public class Wall extends FieldObject {
-    public Wall(Vector location) {
+public class SnakePart extends FieldObject {
+    public SnakePart(Vector location) {
         super(location);
     }
 
