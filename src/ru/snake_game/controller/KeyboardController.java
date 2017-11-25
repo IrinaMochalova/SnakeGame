@@ -27,7 +27,7 @@ public class KeyboardController implements IController {
         lastKey = key;
     }
 
-    public Vector calculateDirection(Vector head, Vector direction) {
+    public Vector getDirection(Vector head, Vector direction) {
         if (lastKey != null && keys.containsKey(lastKey)) {
             Vector newDirection = keys.get(lastKey);
             if (game.getAvailableDirections(head, direction).contains(newDirection))

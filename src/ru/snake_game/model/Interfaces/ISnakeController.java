@@ -4,6 +4,7 @@ import ru.snake_game.model.util.Vector;
 
 public interface ISnakeController {
     int length();
+    boolean isAlive();
 
     Vector getHead();
     Vector getDirection();

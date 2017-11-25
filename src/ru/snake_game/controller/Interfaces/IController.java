@@ -4,5 +4,5 @@ import ru.snake_game.model.Field;
 import ru.snake_game.model.util.Vector;
 
 public interface IController {
-    Vector calculateDirection(Vector head, Vector direction);
+    Vector getDirection(Vector head, Vector direction);
 }

@@ -16,11 +16,13 @@ public class SnakeController implements ISnakeController {
     private IField field;
 
     private int lengthQueue;
+    private boolean alive;
 
     public SnakeController(IField field, Vector location, IController controller) {
         body = new LinkedList<>();
         body.addFirst(location);
         lengthQueue = 0;
+        alive = true;
 
         this.field = field;
         this.controller = controller;
@@ -31,6 +33,10 @@ public class SnakeController implements ISnakeController {
 
     public int length() {
         return body.size();
+    }
+
+    public boolean isAlive() {
+        return alive;
     }
 
     public Vector getHead() {
@@ -51,7 +57,7 @@ public class SnakeController implements ISnakeController {
             field.addObject(new Apple(location));
         }
         body.clear();
-        field.removeSnake(this);
+        alive = false;
     }
 
     public void grow(int value) {
@@ -80,6 +86,6 @@ public class SnakeController implements ISnakeController {
     }
 
     private void updateDirection() {
-        direction = controller.calculateDirection(getHead(), getDirection());
+        direction = controller.getDirection(getHead(), getDirection());
     }
 }

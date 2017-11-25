@@ -24,6 +24,7 @@ public class Game implements IGame {
         useGenerators();
         checkCollisions();
         updateObjects();
+        updateSnakes();
         moveSnakes();
     }
 
@@ -62,6 +63,16 @@ public class Game implements IGame {
                     field.removeObjectAt(location);
             }
         }
+    }
+
+    protected void updateSnakes() {
+        HashSet<ISnakeController> toRemove = new HashSet<>();
+        for (ISnakeController controller : field.getSnakes()) {
+            if (!controller.isAlive())
+                toRemove.add(controller);
+        }
+        for (ISnakeController controller : toRemove)
+            field.removeSnake(controller);
     }
 
     protected void useGenerators() {

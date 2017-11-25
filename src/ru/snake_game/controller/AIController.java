@@ -19,7 +19,7 @@ public class AIController {} /* implements IController {
         this.direction = initialDirection;
     }
 
-    public Vector calculateDirection(Vector headLocation) {
+    public Vector getDirection(Vector headLocation) {
         Vector apple = findApple(headLocation);
         if (apple == null) {
             if (field.getObjectAt(headLocation.add(direction)) instanceof Wall) {
