@@ -5,12 +5,13 @@ import ru.snake_game.model.FieldObjects.Apple;
 import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.IField;
 import ru.snake_game.model.Interfaces.IFieldObject;
+import ru.snake_game.model.Interfaces.IGame;
 import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
-public class AIController {} /* implements IController {
+public class AIController implements IController {
     private IField field;
     private Vector direction;
 
@@ -19,32 +20,20 @@ public class AIController {} /* implements IController {
         this.direction = initialDirection;
     }
 
-    public Vector calculateDirection(Vector headLocation) {
-        Vector apple = findApple(headLocation);
+    public Vector calculateDirection(Vector head, Vector direction) {
+        Vector apple = findApple(head);
         if (apple == null) {
-            if (field.getObjectAt(headLocation.add(direction)) instanceof Wall) {
-                for (Vector newDirection : Directions.ALL) {
-                    if(Vector.getScalarProduct(direction, newDirection) == 0) {
-                        HashSet<Vector> snakes = new HashSet<>();//field.getAllSnakeCells();
-                        Vector newLocation = headLocation.add(newDirection);
-                        if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation)) {
-                            continue;
-                        }
-                        direction = newDirection;
-                        return direction;
-                    }
+            if (field.getObjectAt(head.add(direction)) instanceof Wall) {
+                for (Vector newDirection : getAvailableDirections(head, direction)) {
+                    direction = newDirection;
                 }
             }
-            else
-                return direction;
+            return direction;
         }
-        double distance = apple != null ? Vector.getManhattanDistance(headLocation.add(direction), apple) : 0;
-        for(Vector newDirection : Directions.ALL) {
+        double distance = apple != null ? Vector.getManhattanDistance(head.add(direction), apple) : 0;
+        for(Vector newDirection : getAvailableDirections(head, direction)) {
             if(Vector.getScalarProduct(direction, newDirection) == 0) {
-                HashSet<Vector> snakes = new HashSet<>();//field.getAllSnakeCells();
-                Vector newLocation = headLocation.add(newDirection);
-                if (field.getObjectAt(newLocation) instanceof Wall || snakes.contains(newLocation))
-                    continue;
+                Vector newLocation = head.add(newDirection);
                 double newDistance = Vector.getManhattanDistance(newLocation, apple);
                 if (newDistance < distance) {
                     distance = newDistance;
@@ -75,5 +64,16 @@ public class AIController {} /* implements IController {
         }
         return headLocation == apple ? null : apple;
     }
+
+
+    private ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
+        ArrayList<Vector> directions = new ArrayList<>();
+        for (Vector newDirection : Directions.ALL) {
+            IFieldObject object = field.getObjectAt(location.add(newDirection));
+            if (Vector.getScalarProduct(direction, newDirection) == 0 &&
+                (object == null || object instanceof Apple))
+                directions.add(newDirection);
+        }
+        return directions;
+    }
 }
-*/

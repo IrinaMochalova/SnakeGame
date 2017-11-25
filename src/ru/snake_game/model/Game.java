@@ -27,16 +27,6 @@ public class Game implements IGame {
         moveSnakes();
     }
 
-    public ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
-        ArrayList<Vector> directions = new ArrayList<>();
-        for (Vector newDirection : Directions.ALL) {
-            if (field.getObjectAt(location.add(newDirection)) == null &&
-                Vector.getScalarProduct(direction, newDirection) == 0)
-                directions.add(newDirection);
-        }
-        return directions;
-    }
-
     protected void moveSnakes() {
         for (ISnakeController controller : field.getSnakes())
             controller.move();
