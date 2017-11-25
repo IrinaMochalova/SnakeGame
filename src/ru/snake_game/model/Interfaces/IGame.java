@@ -8,6 +8,4 @@ public interface IGame{
     void tick();
 
     IField getField();
-
-    ArrayList<Vector> getAvailableDirections(Vector location, Vector direction);
 }
