@@ -14,30 +14,29 @@ public class AIController implements IController {
     private IField field;
     private Vector direction;
 
-    public AIController(IField field, Vector initialDirection){
+    public AIController(IField field, Vector direction){
         this.field = field;
-        this.direction = initialDirection;
+        this.direction = direction;
     }
 
-    public Vector calculateDirection(Vector head, Vector direction) {
+    public Vector updateDirection(Vector head) {
         Vector apple = findApple(head);
+        ArrayList<Vector> availableDirections = getAvailableDirections(head, direction);
         if (apple == null) {
             if (field.getObjectAt(head.add(direction)) instanceof Wall) {
-                for (Vector newDirection : getAvailableDirections(head, direction)) {
+                for (Vector newDirection : availableDirections) {
                     direction = newDirection;
                 }
             }
             return direction;
         }
-        double distance = apple != null ? Vector.getManhattanDistance(head.add(direction), apple) : 0;
-        for(Vector newDirection : getAvailableDirections(head, direction)) {
-            if(Vector.getScalarProduct(direction, newDirection) == 0) {
-                Vector newLocation = head.add(newDirection);
-                double newDistance = Vector.getManhattanDistance(newLocation, apple);
-                if (newDistance < distance) {
-                    distance = newDistance;
-                    direction = newDirection;
-                }
+        double distance = Double.MAX_VALUE;
+        for(Vector newDirection : availableDirections) {
+            Vector newLocation = head.add(newDirection);
+            double newDistance = Vector.getManhattanDistance(newLocation, apple);
+            if (newDistance < distance) {
+                distance = newDistance;
+                direction = newDirection;
             }
         }
         return direction;
@@ -68,12 +67,11 @@ public class AIController implements IController {
     private ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
         ArrayList<Vector> directions = new ArrayList<>();
         for (Vector newDirection : Directions.ALL) {
-            IFieldObject object = field.getObjectAt(location.add(newDirection));
-            if (Vector.getScalarProduct(direction, newDirection) == 0 &&
+            IFieldObject object  = field.getObjectAt(location.add(newDirection));
+            if ((Vector.getScalarProduct(direction, newDirection) == 0 || direction == newDirection) &&
                 (object == null || object instanceof Apple))
                 directions.add(newDirection);
         }
         return directions;
     }
 }
-*/

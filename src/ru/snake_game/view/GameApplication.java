@@ -23,14 +23,15 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import org.omg.PortableInterceptor.DISCARDING;
 import ru.snake_game.controller.AIController;
+import ru.snake_game.controller.Interfaces.IController;
 import ru.snake_game.controller.KeyboardController;
 import ru.snake_game.model.*;
 import ru.snake_game.model.FieldObjects.*;
 import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.function.Supplier;
@@ -51,8 +52,7 @@ public class GameApplication extends Application {
     private double strokeWidth;
 
     private IGame game;
-    private KeyboardController controller1;
-    private KeyboardController controller2;
+    private KeyboardController controller;
 
     private Timeline tickLine;
     private Group gameObjectsToDraw;
@@ -111,7 +111,7 @@ public class GameApplication extends Application {
         gameScene = new Scene(root);
 
         gameObjectsToDraw = new Group();
-        gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
+        gameArea = new SubScene(gameObjectsToDraw, WINDOW_WIDTH, WINDOW_HEIGHT);
         gameArea.layoutXProperty().bind(gameArea.widthProperty().divide(2).subtract(WINDOW_WIDTH / 2).multiply(-1));
         gameArea.layoutYProperty().bind(gameArea.heightProperty().divide(2).subtract(WINDOW_HEIGHT / 2).multiply(-1));
         gameArea.setFill(Color.LIGHTGRAY);
@@ -121,10 +121,8 @@ public class GameApplication extends Application {
             KeyCode code = event.getCode();
             if (code == KeyCode.ESCAPE)
                 pauseGame();
-            else {
-                controller1.pressKey(code);
-                controller2.pressKey(code);
-            }
+            else
+                controller.pressKey(code);
         });
     }
 
@@ -135,27 +133,19 @@ public class GameApplication extends Application {
 
         game = new Game(field, generators);
 
-        HashMap<KeyCode, Vector> keys1 = new HashMap<>();
-        keys1.put(KeyCode.UP, Directions.UP);
-        keys1.put(KeyCode.DOWN, Directions.DOWN);
-        keys1.put(KeyCode.LEFT, Directions.LEFT);
-        keys1.put(KeyCode.RIGHT, Directions.RIGHT);
+        HashMap<KeyCode, Vector> keys = new HashMap<>();
+        keys.put(KeyCode.UP, Directions.UP);
+        keys.put(KeyCode.DOWN, Directions.DOWN);
+        keys.put(KeyCode.LEFT, Directions.LEFT);
+        keys.put(KeyCode.RIGHT, Directions.RIGHT);
 
-        controller1 = new KeyboardController(game, keys1, Directions.RIGHT);
+        controller = new KeyboardController(field, keys, Directions.RIGHT);
 
-        ISnakeController snake1 = new SnakeController(field, new Vector(4, 4), controller1);
-        field.addSnake(snake1);
-
-        HashMap<KeyCode, Vector> keys2 = new HashMap<>();
-        keys2.put(KeyCode.W, Directions.UP);
-        keys2.put(KeyCode.S, Directions.DOWN);
-        keys2.put(KeyCode.A, Directions.LEFT);
-        keys2.put(KeyCode.D, Directions.RIGHT);
-
-        controller2 = new KeyboardController(game, keys2, Directions.LEFT);
-
-        ISnakeController snake2 = new SnakeController(field, new Vector(8, 8), controller2);
-        field.addSnake(snake2);
+        ISnakeController snake = new SnakeController(field, new Vector(4, 4) ,controller);
+        field.addSnake(snake);
+        IController aiController = new AIController(field, Directions.RIGHT);
+        ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), aiController);
+        field.addSnake(aiSnake);
 
         drawnObjects = new HashMap<>();
         cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();

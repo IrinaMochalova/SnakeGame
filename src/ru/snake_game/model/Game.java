@@ -1,5 +1,7 @@
 package ru.snake_game.model;
 
+import ru.snake_game.model.FieldObjects.Apple;
+import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
@@ -22,47 +24,21 @@ public class Game implements IGame {
 
     public void tick() {
         useGenerators();
-        checkCollisions();
-        updateObjects();
-        updateSnakes();
-        moveSnakes();
-    }
-
-    protected void moveSnakes() {
-        for (ISnakeController controller : field.getSnakes())
-            controller.move();
-    }
-
-    protected void checkCollisions() {
-        for (ISnakeController controller : field.getSnakes()) {
-            Vector head = controller.getHead();
-            Vector location = head.add(controller.getDirection());
+        for (ISnakeController snake : field.getSnakes()) {
+            snake.updateDirection();
+            Vector head = snake.getHead();
+            Vector location = head.add(snake.getDirection());
             IFieldObject object = field.getObjectAt(location);
-            if (object == null)
-                continue;
-            object.interact(controller);
-        }
-    }
-
-    protected void updateObjects() {
-        for (int x = 0; x < field.getWidth(); x++) {
-            for (int y = 0; y < field.getHeight(); y++) {
-                Vector location = new Vector(x, y);
-                IFieldObject object = field.getObjectAt(location);
-                if (object != null && !object.isActive())
-                    field.removeObjectAt(location);
+            if (object != null) {
+                object.interact(snake);
+                if (!snake.isAlive()){
+                    field.removeSnake(snake);
+                    continue;
+                }
+                field.removeObjectAt(location);
             }
+            snake.move();
         }
-    }
-
-    protected void updateSnakes() {
-        HashSet<ISnakeController> toRemove = new HashSet<>();
-        for (ISnakeController controller : field.getSnakes()) {
-            if (!controller.isAlive())
-                toRemove.add(controller);
-        }
-        for (ISnakeController controller : toRemove)
-            field.removeSnake(controller);
     }
 
     protected void useGenerators() {

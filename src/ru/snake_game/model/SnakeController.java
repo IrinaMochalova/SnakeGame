@@ -71,9 +71,8 @@ public class SnakeController implements ISnakeController {
     }
 
     public void move() {
-        updateDirection();
         Vector head = getHead();
-        Vector newHead = head.add(getDirection());
+        Vector newHead = head.add(direction);
         body.addFirst(newHead);
         field.addObject(new SnakePart(newHead));
         if (lengthQueue > 0) {
@@ -85,7 +84,7 @@ public class SnakeController implements ISnakeController {
         }
     }
 
-    private void updateDirection() {
-        direction = controller.getDirection(getHead(), getDirection());
+    public void updateDirection() {
+        direction = controller.updateDirection(getHead());
     }
 }

@@ -12,6 +12,5 @@ public interface ISnakeController {
     void kill();
     void grow(int value);
     void move();
-
-    boolean hasLocation(Vector location);
+    void updateDirection();
 }

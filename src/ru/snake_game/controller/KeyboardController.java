@@ -13,17 +13,17 @@ public class KeyboardController implements IController {
     private Vector direction;
     private HashMap<KeyCode, Vector> keys;
 
-    public KeyboardController(IField field, HashMap<KeyCode, Vector> keys, Vector initial) {
+    public KeyboardController(IField field, HashMap<KeyCode, Vector> keys, Vector direction) {
         this.keys = keys;
         this.field = field;
-        direction = initial;
+        this.direction = direction;
     }
 
     public void pressKey(KeyCode key) {
         lastKey = key;
     }
 
-    public Vector getDirection(Vector head, Vector direction) {
+    public Vector updateDirection(Vector head) {
         if (lastKey != null && keys.containsKey(lastKey)) {
             Vector newDirection = keys.get(lastKey);
             if (Vector.getScalarProduct(direction, newDirection) == 0)
