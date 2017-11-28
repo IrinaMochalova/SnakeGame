@@ -46,9 +46,9 @@ public class SnakeController implements ISnakeController {
         return direction;
     }
 
-    public boolean hasLocation(Vector location) {
+   /*public boolean hasLocation(Vector location) {
         return body.contains(location);
-    }
+    }*/
 
     public void kill() {
         for (Vector location : body) {
@@ -61,6 +61,10 @@ public class SnakeController implements ISnakeController {
 
     public void grow(int value) {
         while (value < 0) {
+            if (body.size() <= 0) {
+                kill();
+                break;
+            }
             Vector location = body.removeLast();
             field.removeObjectAt(location);
             value++;

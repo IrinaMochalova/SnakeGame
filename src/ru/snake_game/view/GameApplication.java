@@ -129,11 +129,11 @@ public class GameApplication extends Application {
     private void startGame() {
         IField field = FieldMakers.makeBoardedField(15, 15);
         HashSet<IGenerator> generators = new HashSet<>();
-        generators.add(new Generator<>(Apple.class, field));
+        //generators.add(new Generator<>(Apple.class, field));
 
         game = new Game(field, generators);
 
-        HashMap<KeyCode, Vector> keys = new HashMap<>();
+        /*HashMap<KeyCode, Vector> keys = new HashMap<>();
         keys.put(KeyCode.UP, Directions.UP);
         keys.put(KeyCode.DOWN, Directions.DOWN);
         keys.put(KeyCode.LEFT, Directions.LEFT);
@@ -142,9 +142,9 @@ public class GameApplication extends Application {
         controller = new KeyboardController(field, keys);
 
         ISnakeController snake = new SnakeController(field, new Vector(4, 4), Directions.RIGHT, controller);
-        field.addSnake(snake);
+        field.addSnake(snake);*/
         IController aiController = new AIController(field);
-        ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), Directions.RIGHT, aiController);
+        ISnakeController aiSnake= new SnakeController(field, new Vector(1, 1), Directions.RIGHT, aiController);
         field.addSnake(aiSnake);
 
         drawnObjects = new HashMap<>();
