@@ -1,12 +1,8 @@
 package ru.snake_game.model;
 
-import ru.snake_game.model.FieldObjects.Apple;
-import ru.snake_game.model.FieldObjects.Wall;
 import ru.snake_game.model.Interfaces.*;
-import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.Vector;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Game implements IGame {

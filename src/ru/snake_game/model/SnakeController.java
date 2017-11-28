@@ -18,7 +18,7 @@ public class SnakeController implements ISnakeController {
     private int lengthQueue;
     private boolean alive;
 
-    public SnakeController(IField field, Vector location, IController controller) {
+    public SnakeController(IField field, Vector location, Vector direction, IController controller) {
         body = new LinkedList<>();
         body.addFirst(location);
         lengthQueue = 0;
@@ -26,9 +26,8 @@ public class SnakeController implements ISnakeController {
 
         this.field = field;
         this.controller = controller;
+        this.direction = direction;
         field.addObject(new SnakePart(location));
-
-        updateDirection();
     }
 
     public int length() {
@@ -85,6 +84,6 @@ public class SnakeController implements ISnakeController {
     }
 
     public void updateDirection() {
-        direction = controller.getDirection(getHead());
+        direction = controller.getDirection(getHead(), direction);
     }
 }

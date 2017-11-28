@@ -13,14 +13,15 @@ import java.util.ArrayList;
 public class AIController implements IController {
     private IField field;
     private Vector direction;
+    private Vector apple;
 
-    public AIController(IField field, Vector direction){
+    public AIController(IField field){
         this.field = field;
-        this.direction = direction;
     }
 
-    public Vector getDirection(Vector head) {
-        Vector apple = findApple(head);
+    public Vector getDirection(Vector head, Vector initialDirection) {
+        this.direction = initialDirection;
+        findApple(head);
         ArrayList<Vector> availableDirections = getAvailableDirections(head, direction);
         if (apple == null) {
             if (field.getObjectAt(head.add(direction)) instanceof Wall) {
@@ -42,9 +43,9 @@ public class AIController implements IController {
         return direction;
     }
 
-    private Vector findApple(Vector headLocation) {
-        //if (target != null && field.getObjectAt(target) instanceof Apple)
-            //return;
+    private void findApple(Vector headLocation) {
+        if (apple != null && field.getObjectAt(apple) instanceof Apple)
+            return;
         double distance = Double.MAX_VALUE;
         Vector apple = headLocation;
         for (int x = 0; x < field.getWidth(); x++) {
@@ -60,7 +61,7 @@ public class AIController implements IController {
                 }
             }
         }
-        return headLocation == apple ? null : apple;
+        this.apple = headLocation == apple ? null : apple;
     }
 
 

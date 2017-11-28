@@ -139,13 +139,13 @@ public class GameApplication extends Application {
         keys.put(KeyCode.LEFT, Directions.LEFT);
         keys.put(KeyCode.RIGHT, Directions.RIGHT);
 
-        controller = new KeyboardController(field, keys, Directions.RIGHT);
+        controller = new KeyboardController(field, keys);
 
-        ISnakeController snake = new SnakeController(field, new Vector(4, 4) ,controller);
+        ISnakeController snake = new SnakeController(field, new Vector(4, 4), Directions.RIGHT, controller);
         field.addSnake(snake);
-/*        IController aiController = new AIController(field, Directions.RIGHT);
-        ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), aiController);
-        field.addSnake(aiSnake);*/
+        IController aiController = new AIController(field);
+        ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), Directions.RIGHT, aiController);
+        field.addSnake(aiSnake);
 
         drawnObjects = new HashMap<>();
         cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();
