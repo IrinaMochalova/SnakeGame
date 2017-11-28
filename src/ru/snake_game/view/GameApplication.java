@@ -111,7 +111,7 @@ public class GameApplication extends Application {
         gameScene = new Scene(root);
 
         gameObjectsToDraw = new Group();
-        gameArea = new SubScene(gameObjectsToDraw, WINDOW_WIDTH, WINDOW_HEIGHT);
+        gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
         gameArea.layoutXProperty().bind(gameArea.widthProperty().divide(2).subtract(WINDOW_WIDTH / 2).multiply(-1));
         gameArea.layoutYProperty().bind(gameArea.heightProperty().divide(2).subtract(WINDOW_HEIGHT / 2).multiply(-1));
         gameArea.setFill(Color.LIGHTGRAY);
@@ -143,9 +143,9 @@ public class GameApplication extends Application {
 
         ISnakeController snake = new SnakeController(field, new Vector(4, 4) ,controller);
         field.addSnake(snake);
-        IController aiController = new AIController(field, Directions.RIGHT);
+/*        IController aiController = new AIController(field, Directions.RIGHT);
         ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), aiController);
-        field.addSnake(aiSnake);
+        field.addSnake(aiSnake);*/
 
         drawnObjects = new HashMap<>();
         cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();

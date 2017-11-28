@@ -31,11 +31,12 @@ public class Game implements IGame {
             IFieldObject object = field.getObjectAt(location);
             if (object != null) {
                 object.interact(snake);
-                if (!snake.isAlive()){
+                if (!snake.isAlive()) {
                     field.removeSnake(snake);
                     continue;
                 }
-                field.removeObjectAt(location);
+                if (!object.isActive())
+                    field.removeObjectAt(location);
             }
             snake.move();
         }

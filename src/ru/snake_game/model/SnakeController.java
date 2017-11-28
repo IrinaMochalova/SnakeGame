@@ -85,6 +85,6 @@ public class SnakeController implements ISnakeController {
     }
 
     public void updateDirection() {
-        direction = controller.updateDirection(getHead());
+        direction = controller.getDirection(getHead());
     }
 }

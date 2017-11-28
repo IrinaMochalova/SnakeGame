@@ -19,7 +19,7 @@ public class AIController implements IController {
         this.direction = direction;
     }
 
-    public Vector updateDirection(Vector head) {
+    public Vector getDirection(Vector head) {
         Vector apple = findApple(head);
         ArrayList<Vector> availableDirections = getAvailableDirections(head, direction);
         if (apple == null) {

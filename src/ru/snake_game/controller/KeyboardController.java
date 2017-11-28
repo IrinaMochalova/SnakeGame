@@ -23,7 +23,7 @@ public class KeyboardController implements IController {
         lastKey = key;
     }
 
-    public Vector updateDirection(Vector head) {
+    public Vector getDirection(Vector head) {
         if (lastKey != null && keys.containsKey(lastKey)) {
             Vector newDirection = keys.get(lastKey);
             if (Vector.getScalarProduct(direction, newDirection) == 0)
