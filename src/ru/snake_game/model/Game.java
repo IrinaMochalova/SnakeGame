@@ -4,6 +4,7 @@ import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.Vector;
 
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class Game implements IGame {
     protected IField field;
@@ -20,7 +21,9 @@ public class Game implements IGame {
 
     public void tick() {
         useGenerators();
-        for (ISnakeController snake : field.getSnakes()) {
+        Iterator iterator = field.getSnakes().iterator();
+        while (iterator.hasNext()) {
+            ISnakeController snake = (ISnakeController)iterator.next();
             snake.updateDirection();
             Vector head = snake.getHead();
             Vector location = head.add(snake.getDirection());
@@ -28,7 +31,7 @@ public class Game implements IGame {
             if (object != null) {
                 object.interact(snake);
                 if (!snake.isAlive()) {
-                    field.removeSnake(snake);
+                    iterator.remove();
                     continue;
                 }
                 if (!object.isActive())
