@@ -4,7 +4,6 @@ import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.Vector;
 
 import java.util.HashSet;
-import java.util.Iterator;
 
 public class Game implements IGame {
     protected IField field;
@@ -21,23 +20,30 @@ public class Game implements IGame {
 
     public void tick() {
         useGenerators();
-        Iterator iterator = field.getSnakes().iterator();
-        while (iterator.hasNext()) {
-            ISnakeController snake = (ISnakeController)iterator.next();
-            snake.updateDirection();
-            Vector head = snake.getHead();
-            Vector location = head.add(snake.getDirection());
-            IFieldObject object = field.getObjectAt(location);
-            if (object != null) {
-                object.interact(snake);
-                if (!snake.isAlive()) {
-                    iterator.remove();
-                    continue;
-                }
-                if (!object.isActive())
-                    field.removeObjectAt(location);
-            }
-            snake.move();
+        moveSnakes();
+    }
+
+    protected void moveSnakes() {
+        HashSet<ISnakeController> died = new HashSet<>();
+        for (ISnakeController snake : field.getSnakes()) {
+            checkCollision(snake);
+            if (!snake.isAlive())
+                died.add(snake);
+            else
+                snake.move();
+        }
+        for (ISnakeController snake : died)
+            field.removeSnake(snake);
+    }
+
+    protected void checkCollision(ISnakeController snake) {
+        snake.updateDirection();
+        Vector location = snake.getHead().add(snake.getDirection());
+        IFieldObject object = field.getObjectAt(location);
+        if (object != null) {
+            object.interact(snake);
+            if (!object.isActive())
+                field.removeObjectAt(location);
         }
     }
 

@@ -24,14 +24,14 @@ public class AIControllerTest {
 
     @Test
     public void snakeInEmptyField() throws Exception {
-        assertEquals(Directions.RIGHT, controller.getDirection(head, Directions.RIGHT));
+        assertEquals(Directions.DOWN, controller.getDirection(head, Directions.RIGHT));
         assertEquals(Directions.RIGHT, controller.getDirection(head, Directions.UP));
         assertEquals(Directions.DOWN, controller.getDirection(head, Directions.LEFT));
         assertEquals(Directions.DOWN, controller.getDirection(head, Directions.DOWN));
     }
 
     @Test
-    public void snakeFindApple() throws Exception{
+    public void snakeFindApple() throws Exception {
         field.addObject(new Apple(new Vector(1,4)));
         assertEquals(Directions.DOWN, controller.getDirection(head, Directions.RIGHT));
         assertEquals(Directions.RIGHT, controller.getDirection(head, Directions.UP));

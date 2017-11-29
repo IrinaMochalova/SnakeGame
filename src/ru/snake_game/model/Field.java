@@ -5,7 +5,6 @@ import ru.snake_game.model.Interfaces.IFieldObject;
 import ru.snake_game.model.Interfaces.ISnakeController;
 import ru.snake_game.model.util.Vector;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -13,7 +12,7 @@ public class Field implements IField {
     private IFieldObject[][] field;
     private HashSet<ISnakeController> snakes;
 
-    public Field(int height, int width) {
+    public Field(int width, int height) {
         if (height < 1 || width < 1)
             throw new IllegalArgumentException("Incorrect field size.");
         field = new IFieldObject[width][];
@@ -58,15 +57,17 @@ public class Field implements IField {
     }
 
     public Vector findEmptyCell() {
-        ArrayList<Vector> freeCells = new ArrayList<>();
-        for (int x = 0; x < getWidth(); x++) {
-            for (int y = 0; y < getHeight(); y++) {
-                Vector location = new Vector(x, y);
-                if (getObjectAt(location) == null)
-                    freeCells.add(location);
-            }
+        Vector size = new Vector(getWidth(), getHeight());
+        int index = (new Random()).nextInt(size.getX() * size.getY());
+        int iterator = 0;
+        while (iterator <= index) {
+            Vector location = new Vector(iterator % size.getX(), iterator / size.getX()).bound(size);
+            if (getObjectAt(location) != null)
+                index++;
+            if (iterator == index)
+                return location;
+            iterator++;
         }
-        int index = (new Random()).nextInt(freeCells.size());
-        return freeCells.get(index);
+        throw new IndexOutOfBoundsException("Field does not contain any free cell.");
     }
 }

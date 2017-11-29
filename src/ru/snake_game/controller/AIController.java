@@ -12,27 +12,19 @@ import java.util.ArrayList;
 
 public class AIController implements IController {
     private IField field;
-    private Vector direction;
     private Vector apple;
 
     public AIController(IField field){
         this.field = field;
     }
 
-    public Vector getDirection(Vector head, Vector initialDirection) {
-        this.direction = initialDirection;
-        findApple(head);
+    public Vector getDirection(Vector head, Vector direction) {
         ArrayList<Vector> availableDirections = getAvailableDirections(head, direction);
-        if (apple == null) {
-            if (field.getObjectAt(head.add(direction)) instanceof Wall) {
-                for (Vector newDirection : availableDirections) {
-                    direction = newDirection;
-                }
-            }
-            return direction;
-        }
+        updateAppleLocation(head);
+        if (apple == null)
+            return availableDirections.get(0);
         double distance = Double.MAX_VALUE;
-        for(Vector newDirection : availableDirections) {
+        for (Vector newDirection : availableDirections) {
             Vector newLocation = head.add(newDirection);
             double newDistance = Vector.getManhattanDistance(newLocation, apple);
             if (newDistance < distance) {
@@ -43,25 +35,24 @@ public class AIController implements IController {
         return direction;
     }
 
-    private void findApple(Vector headLocation) {
+    private void updateAppleLocation(Vector headLocation) {
         if (apple != null && field.getObjectAt(apple) instanceof Apple)
             return;
+        apple = null;
         double distance = Double.MAX_VALUE;
-        Vector apple = headLocation;
         for (int x = 0; x < field.getWidth(); x++) {
             for (int y = 0; y < field.getHeight(); y++) {
-                Vector newTarget = new Vector(x, y);
-                IFieldObject object = field.getObjectAt(newTarget);
-                if (object == null || !(object instanceof Apple))
-                    continue;
-                double newDistance = Vector.getDistance(newTarget, headLocation);
-                if (newDistance < distance) {
-                    apple = newTarget;
-                    distance = newDistance;
+                Vector target = new Vector(x, y);
+                IFieldObject object = field.getObjectAt(target);
+                if (object instanceof Apple) {
+                    double newDistance = Vector.getManhattanDistance(target, headLocation);
+                    if (newDistance < distance) {
+                        apple = target;
+                        distance = newDistance;
+                    }
                 }
             }
         }
-        this.apple = headLocation == apple ? null : apple;
     }
 
 
@@ -69,8 +60,7 @@ public class AIController implements IController {
         ArrayList<Vector> directions = new ArrayList<>();
         for (Vector newDirection : Directions.ALL) {
             IFieldObject object  = field.getObjectAt(location.add(newDirection));
-            if ((Vector.getScalarProduct(direction, newDirection) == 0 || direction == newDirection) &&
-                (object == null || object instanceof Apple))
+            if (!newDirection.multiply(-1).equals(direction) && (object == null || object instanceof Apple))
                 directions.add(newDirection);
         }
         return directions;

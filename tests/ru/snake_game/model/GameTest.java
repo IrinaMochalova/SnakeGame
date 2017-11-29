@@ -22,7 +22,6 @@ public class GameTest {
     private HashSet<IGenerator> generators;
     private IGame game;
 
-
     @Before
     public void setUp() throws Exception {
         field = FieldMakers.makeBoardedField(7,7);
@@ -33,7 +32,6 @@ public class GameTest {
         IController aiController = new AIController(field);
         ISnakeController aiSnake = new SnakeController(field, new Vector(1, 1), Directions.RIGHT, aiController);
         field.addSnake(aiSnake);
-
     }
 
     @Test

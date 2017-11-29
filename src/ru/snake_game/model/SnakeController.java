@@ -46,10 +46,6 @@ public class SnakeController implements ISnakeController {
         return direction;
     }
 
-    public boolean hasLocation(Vector location) {
-        return body.contains(location);
-    }
-
     public void kill() {
         for (Vector location : body) {
             field.removeObjectAt(location);
@@ -65,7 +61,6 @@ public class SnakeController implements ISnakeController {
             field.removeObjectAt(location);
             value++;
         }
-
         lengthQueue += value;
     }
 
@@ -76,8 +71,7 @@ public class SnakeController implements ISnakeController {
         field.addObject(new SnakePart(newHead));
         if (lengthQueue > 0) {
             lengthQueue--;
-        }
-        else {
+        } else {
             Vector tail = body.removeLast();
             field.removeObjectAt(tail);
         }

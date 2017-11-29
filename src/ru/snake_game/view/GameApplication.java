@@ -139,7 +139,7 @@ public class GameApplication extends Application {
         keys.put(KeyCode.LEFT, Directions.LEFT);
         keys.put(KeyCode.RIGHT, Directions.RIGHT);
 
-        controller = new KeyboardController(field, keys);
+        controller = new KeyboardController(keys);
 
         ISnakeController snake = new SnakeController(field, new Vector(4, 4), Directions.RIGHT, controller);
         field.addSnake(snake);
