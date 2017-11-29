@@ -10,6 +10,8 @@ import ru.snake_game.model.util.Directions;
 import ru.snake_game.model.util.FieldMakers;
 import ru.snake_game.model.util.Vector;
 
+import static org.junit.Assert.*;
+
 public class SnakeControllerTest {
     private ISnakeController snake;
 
@@ -23,18 +25,30 @@ public class SnakeControllerTest {
     }
 
     @Test
-    public void eatAndGo() throws Exception {
+    public void growAndGo() throws Exception {
         int growValue = 3;
         snake.grow(growValue);
-        for(int i = 0; i <= growValue; i++){
+        for(int i = 0; i < growValue; i++){
             snake.move();
         }
-
+        assertEquals(4, snake.length());
+        assertEquals(new Vector(4,1), snake.getHead());
+        assertTrue(snake.isAlive());
     }
 
     @Test
-    public void move() throws Exception {
-        snake.move();
+    public void growDownwards() throws Exception {
+        growAndGo();
+        int growValue = -2;
+        snake.grow(growValue);
+
+        assertEquals(2, snake.length());
+        assertTrue(snake.isAlive());
     }
 
+    @Test
+    public void  oopsGrowDownwards() throws Exception {
+        snake.grow(-2);
+        assertFalse(snake.isAlive());
+    }
 }

@@ -56,6 +56,10 @@ public class SnakeController implements ISnakeController {
     }
 
     public void grow(int value) {
+        if (value <= -length()) {
+            kill();
+            return;
+        }
         while (value < 0) {
             Vector location = body.removeLast();
             field.removeObjectAt(location);
