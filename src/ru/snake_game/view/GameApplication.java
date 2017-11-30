@@ -4,12 +4,13 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.SubScene;
-import javafx.scene.control.Button;
+import javafx.scene.*;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
@@ -23,7 +24,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import org.omg.PortableInterceptor.DISCARDING;
 import ru.snake_game.controller.AIController;
 import ru.snake_game.controller.Interfaces.IController;
 import ru.snake_game.controller.KeyboardController;
@@ -32,19 +32,20 @@ import ru.snake_game.model.FieldObjects.*;
 import ru.snake_game.model.Interfaces.*;
 import ru.snake_game.model.util.*;
 
+import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
 public class GameApplication extends Application {
-    private Stage primaryStage;
 
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
 
+    private Stage primaryStage;
     private Scene mainMenuScene;
     private Scene gameScene;
-    private Scene pauseMenuScene;
+    private Scene signUp;
     private SubScene gameArea;
 
     private Duration tickDuration = new Duration(250);
@@ -61,10 +62,26 @@ public class GameApplication extends Application {
 
     @Override
     public void init() {
+        initSignUp();
         initMainMenuScene();
         initGameScene();
-        initPauseMenuScene();
         initPainter();
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        this.primaryStage = primaryStage;
+        primaryStage.resizableProperty().setValue(false);
+
+        primaryStage.setScene(mainMenuScene);
+        primaryStage.show();
+
+        primaryStage.setWidth(WINDOW_WIDTH
+                + mainMenuScene.getWindow().getWidth()
+                - mainMenuScene.getWidth());
+        primaryStage.setHeight(WINDOW_HEIGHT
+                + mainMenuScene.getWindow().getHeight()
+                - mainMenuScene.getHeight());
     }
 
     private void initPainter() {
@@ -99,6 +116,15 @@ public class GameApplication extends Application {
         });
     }
 
+    private void initMainMenuScene() {
+        Button playButton = makeImageButton("image/Play.png");
+        playButton.setOnAction(event -> primaryStage.setScene(signUp));
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.close();
+        Parent root = makeGrid(playButton, close);
+        mainMenuScene = new Scene(root);
+    }
+
     private void initGameScene() {
         tickLine = new Timeline();
         tickLine.setOnFinished(event -> {
@@ -107,23 +133,54 @@ public class GameApplication extends Application {
             tickLine.play();
         });
 
-        Group root = new Group();
-        gameScene = new Scene(root);
-
         gameObjectsToDraw = new Group();
         gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
-        gameArea.layoutXProperty().bind(gameArea.widthProperty().divide(2).subtract(WINDOW_WIDTH / 2).multiply(-1));
-        gameArea.layoutYProperty().bind(gameArea.heightProperty().divide(2).subtract(WINDOW_HEIGHT / 2).multiply(-1));
         gameArea.setFill(Color.LIGHTGRAY);
+
+        GridPane root = new GridPane();
+        root.setAlignment(Pos.CENTER);
         root.getChildren().add(gameArea);
+        gameScene = new Scene(root);
 
         gameScene.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            if (code == KeyCode.ESCAPE)
-                pauseGame();
-            else
-                controller.pressKey(code);
+            controller.pressKey(code);
         });
+    }
+
+    private void initSignUp() {
+        TextField name = new TextField();
+        TextField port = new TextField();
+        TextField ip = new TextField();
+
+        Button button = new Button("CONNECT");
+        button.setCursor(Cursor.HAND);
+        button.setOnAction(event -> connect(name.getText(), port.getText(), ip.getText()));
+        HBox buttonHB = new HBox();
+        buttonHB.getChildren().add(button);
+
+        HBox[] hBoxes = new HBox[]{
+                makeHBox("Name:", name),
+                makeHBox("Port:", port),
+                makeHBox("Ip:", ip),
+                buttonHB
+        };
+
+        for (HBox hb : hBoxes) {
+            hb.setAlignment(Pos.CENTER_RIGHT);
+        }
+
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(hBoxes);
+        for (int i = 0; i < center.getChildren().size(); i++) {
+            GridPane.setConstraints(center.getChildren().get(i), 0, i);
+        }
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
+        Parent root = makeGrid(center, close);
+        signUp = new Scene(root);
     }
 
     private void startGame() {
@@ -155,20 +212,6 @@ public class GameApplication extends Application {
         primaryStage.setScene(gameScene);
     }
 
-    private void pauseGame() {
-        primaryStage.setScene(pauseMenuScene);
-        WritableImage image = new WritableImage(WINDOW_WIDTH, WINDOW_HEIGHT);
-        gameScene.snapshot(image);
-        ((GridPane)(pauseMenuScene.getRoot())).setBackground(new Background(new BackgroundImage(
-                image,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER,
-                BackgroundSize.DEFAULT))
-        );
-        tickLine.pause();
-    }
-
     private void arrangeTickLineAndDrawnObjects() {
         tickLine.getKeyFrames().clear();
         gameObjectsToDraw.getChildren().clear();
@@ -198,89 +241,51 @@ public class GameApplication extends Application {
         }
     }
 
-    private void initPauseMenuScene() {
-        Button[] buttons = new Button[]{
-                new Button("Resume"),
-                new Button("Restart"),
-                new Button("Quit to Main Menu")
-        };
-
-        buttons[0].setOnAction(event -> {
-            primaryStage.setScene(gameScene);
-            tickLine.play();
-        });
-
-        buttons[1].setOnAction(event -> startGame());
-
-        buttons[2].setOnAction(event -> {
-            tickLine.stop();
-            primaryStage.setScene(mainMenuScene);
-        });
-
-        GridPane root = new GridPane();
-        root.setAlignment(Pos.CENTER);
-        root.setVgap(20);
-
-        Text sceneTitle = new Text();
-        sceneTitle.setText("PAUSE");
-        sceneTitle.setFont(Font.font("verdana", FontWeight.BOLD, 50));
-        root.add(sceneTitle, 0, 0);
-
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setMinSize(180, 40);
-            GridPane.setConstraints(buttons[i], 0, i + 1);
+    private void connect(String name, String port, String ip) {
+        if (name.equals("") || port.equals("") || ip.equals("")) {
+            // Please, do NOT remove ButtonType, it will cause an extremely big bug!!!!!
+            new Alert(Alert.AlertType.NONE, "Wrong input.", ButtonType.CLOSE).show();
+            return;
         }
-        root.getChildren().addAll(buttons);
-        pauseMenuScene = new Scene(root);
+        startGame();
     }
 
-    private void initMainMenuScene() {
-        Group root = new Group();
-        mainMenuScene = new Scene(root);
-        mainMenuScene.fillProperty().setValue(Color.BLACK);
-
-        GridPane buttonList = new GridPane();
-        root.getChildren().add(buttonList);
-
-        buttonList.layoutXProperty().setValue(20);
-        buttonList.layoutYProperty().bind(
-                mainMenuScene.heightProperty().subtract(buttonList.heightProperty().add(20))
-        );
-
-        buttonList.setVgap(5);
-
-        Button exitButton = new Button("Exit");
-        exitButton.setOnAction(event -> primaryStage.close());
-
-        Button playButton = new Button("Play");
-        playButton.setOnAction(event -> startGame());
-
-        Button[] buttons = new Button[]{
-                playButton,
-                new Button("Options"),
-                new Button("Credits"),
-                exitButton
-        };
-
-        for (int i = 0; i < buttons.length; i++)
-            GridPane.setConstraints(buttons[i], 0, i);
-
-        buttonList.getChildren().addAll(buttons);
+    private HBox makeHBox(String label, TextField textField) {
+        HBox hb = new HBox();
+        hb.getChildren().addAll(new Label(label), textField);
+        return hb;
     }
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        this.primaryStage = primaryStage;
-        primaryStage.resizableProperty().setValue(false);
+    private Image getImage(String name){
+        FileInputStream input = null;
+        try {
+            input = new FileInputStream(name);
+        } catch (Exception ignored) {
+        }
+        return new Image(input);
+    }
 
-        primaryStage.setScene(mainMenuScene);
-        primaryStage.show();
+    private Button makeImageButton(String name) {
+        Image image = getImage(name);
+        ImageView imageView = new ImageView(image);
+        Button button = new Button("", imageView);
+        button.setCursor(Cursor.HAND);
+        button.setBackground(Background.EMPTY);
+        return button;
+    }
 
-        primaryStage.setWidth(WINDOW_WIDTH
-                + mainMenuScene.getWindow().getWidth()
-                - mainMenuScene.getWidth());
-        primaryStage.setHeight(WINDOW_HEIGHT
-                + mainMenuScene.getWindow().getHeight()
-                - mainMenuScene.getHeight());
+    private Parent makeGrid(Node center, EventHandler<ActionEvent> exitAction) {
+        Button exitButton = makeImageButton("image/Exit.png");
+        exitButton.setOnAction(exitAction);
+        BorderPane root = new BorderPane();
+        root.setCenter(center);
+        root.setBottom(exitButton);
+
+        Image image = getImage("image/BackGr.png");
+        BackgroundImage myBI= new BackgroundImage(image,
+                BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT);
+        root.setBackground(new Background(myBI));
+
+        return root;
     }
 }
