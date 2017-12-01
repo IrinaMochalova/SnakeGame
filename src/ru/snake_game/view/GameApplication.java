@@ -21,6 +21,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -45,6 +46,7 @@ public class GameApplication extends Application {
     private Stage primaryStage;
     private Scene mainMenuScene;
     private Scene gameScene;
+    private Scene gameOverScene;
     private Scene signUp;
     private SubScene gameArea;
 
@@ -66,6 +68,7 @@ public class GameApplication extends Application {
         initMainMenuScene();
         initGameScene();
         initPainter();
+        initGameOverScene();
     }
 
     @Override
@@ -144,7 +147,10 @@ public class GameApplication extends Application {
 
         gameScene.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            controller.pressKey(code);
+            if (code == KeyCode.ESCAPE)
+                gameOver();
+            else
+                controller.pressKey(code);
         });
     }
 
@@ -287,5 +293,21 @@ public class GameApplication extends Application {
         root.setBackground(new Background(myBI));
 
         return root;
+    }
+
+    public void gameOver() {
+        tickLine.stop();
+        primaryStage.setScene(gameOverScene);
+    }
+
+    private void initGameOverScene() {
+        Text sceneTitle = new Text();
+        sceneTitle.setText("GAME OVER");
+        sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.close();
+        Parent root = makeGrid(sceneTitle, close);
+
+        gameOverScene = new Scene(root);
     }
 }
