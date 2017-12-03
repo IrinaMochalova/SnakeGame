@@ -1,4 +1,4 @@
-package server;
+package client;
 
 import model.FieldObjects.Apple;
 import model.Interfaces.IPlayer;

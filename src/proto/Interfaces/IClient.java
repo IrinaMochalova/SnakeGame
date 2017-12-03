@@ -1,6 +1,6 @@
 package proto.Interfaces;
 
-public interface IClient <T> {
+public interface IClient<T> {
     char[] receive();
     void send(char[] message);
 

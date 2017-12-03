@@ -15,7 +15,7 @@ public class RemotePlayer implements IPlayer {
     }
 
     public Vector getDirection(Vector head, Vector direction) {
-        if (this.direction != null)
+        if (this.direction != null && Vector.getScalarProduct(direction, this.direction) == 0)
             direction = this.direction;
         return direction;
     }

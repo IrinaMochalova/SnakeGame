@@ -1,17 +1,12 @@
 package server;
 
 import model.*;
-import model.FieldObjects.Apple;
-import model.Interfaces.IField;
-import model.Interfaces.IGame;
-import model.Interfaces.IGenerator;
-import model.Interfaces.IPlayer;
-import proto.Interfaces.IClient;
-import proto.Interfaces.IClientListener;
+import model.FieldObjects.*;
+import model.Interfaces.*;
+import proto.Interfaces.*;
 import proto.Packer;
 import proto.Settings;
 
-import java.net.Socket;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
