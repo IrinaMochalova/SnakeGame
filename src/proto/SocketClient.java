@@ -61,9 +61,7 @@ public class SocketClient extends Thread implements IClient<Socket> {
                     output.flush();
                 }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        } catch (Exception ignored) {}
     }
 
     private char[] stripMessage(char[] message, int count) {

@@ -2,19 +2,21 @@ package server;
 
 import model.Interfaces.IPlayer;
 import model.Vector;
-import proto.Interfaces.IClient;
 
 public class RemotePlayer implements IPlayer {
-    private IClient client;
+    private Vector direction;
 
-    public RemotePlayer(IClient client) {
-        this.client = client;
+    public RemotePlayer() {
+        direction = null;
+    }
+
+    public void setDirection(Vector direction) {
+        this.direction = direction;
     }
 
     public Vector getDirection(Vector head, Vector direction) {
-        if (client.hasMessage()) {
-            direction = null; // message
-        }
+        if (this.direction != null)
+            direction = this.direction;
         return direction;
     }
 }

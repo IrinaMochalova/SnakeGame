@@ -1,17 +1,19 @@
 package proto;
 
-import proto.Interfaces.IClientAcceptor;
+import proto.Interfaces.IClientListener;
 
 import java.net.ServerSocket;
 import java.util.ArrayDeque;
 
-public class SocketClientAcceptor extends Thread implements IClientAcceptor<SocketClient> {
+public class SocketClientListener extends Thread implements IClientListener<SocketClient> {
     private ServerSocket server;
     private ArrayDeque<SocketClient> clients;
 
-    public SocketClientAcceptor(ServerSocket server) {
+    public SocketClientListener(ServerSocket server) {
         clients = new ArrayDeque<>();
         this.server = server;
+
+        start();
     }
 
     public boolean hasClient() {
@@ -26,8 +28,11 @@ public class SocketClientAcceptor extends Thread implements IClientAcceptor<Sock
 
     @Override
     public void run() {
-        try {
-            clients.addLast(new SocketClient(server.accept(), Settings.MESSAGE_SIZE));
-        } catch (Exception ignored) {}
+        while (true) {
+            try {
+                clients.addLast(new SocketClient(server.accept(), Settings.MESSAGE_SIZE));
+            }
+            catch (Exception ignored) { }
+        }
     }
 }

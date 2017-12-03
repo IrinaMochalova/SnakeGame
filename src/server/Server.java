@@ -5,29 +5,37 @@ import model.FieldObjects.Apple;
 import model.Interfaces.IField;
 import model.Interfaces.IGame;
 import model.Interfaces.IGenerator;
-import proto.Combiners;
+import model.Interfaces.IPlayer;
 import proto.Interfaces.IClient;
-import proto.Interfaces.IClientAcceptor;
+import proto.Interfaces.IClientListener;
+import proto.Packer;
 import proto.Settings;
 
+import java.net.Socket;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class Server {
-    private HashSet<IClient> clients;
+    private HashMap<IClient, RemotePlayer> clients;
+    private IGame game;
 
-    public Server(IClientAcceptor acceptor, int clientsCount) throws Exception {
-        clients = acceptClients(acceptor, clientsCount);
-        IField field = makeField(clients);
-        IGame game = new Game(field, makeGenerators(field));
+    public Server(IClientListener listener, int clientsCount, int roundTime) throws Exception {
+        clients = new HashMap<>();
 
-        run(game);
+        for (IClient client : acceptClients(listener, clientsCount))
+            clients.put(client, new RemotePlayer());
+        IField field = makeField(clients.values());
+        game = new Game(field, makeGenerators(field));
+
+        run(roundTime);
     }
 
-    private HashSet<IClient> acceptClients(IClientAcceptor acceptor, int clientsCount) {
+    private HashSet<IClient> acceptClients(IClientListener listener, int clientsCount) {
         HashSet<IClient> clients = new HashSet<>();
         while (clients.size() < clientsCount) {
-            if (acceptor.hasClient())
-                clients.add(acceptor.accept());
+            if (listener.hasClient())
+                clients.add(listener.accept());
             HashSet<IClient> disconnected = new HashSet<>();
             for (IClient client : clients) {
                 if (!client.isConnected())
@@ -38,16 +46,16 @@ public class Server {
         return clients;
     }
 
-    private IField makeField(HashSet<IClient> clients) {
-        int clientsCount = clients.size();
-        int size = Settings.MIN_FIELD_SIZE + clientsCount;
+    private IField makeField(Collection<RemotePlayer> players) {
+        int playersCount = players.size();
+        int size = Settings.MIN_FIELD_SIZE + playersCount;
         IField field = FieldMakers.makeSquaredField(size);
-        Vector offset = new Vector(size / clientsCount, size / clientsCount);
+        Vector offset = new Vector(size / playersCount, size / playersCount);
         Vector location = new Vector(offset.getX() / 2, offset.getY() / 2);
         int index = 0;
-        for (IClient client : clients) {
+        for (IPlayer player : players) {
             Vector direction = index > size / 2 ? Direction.UP : Direction.DOWN;
-            field.addSnake(new SnakeController(field, location, direction, new RemotePlayer(client)));
+            field.addSnake(new SnakeController(field, location, direction, player));
             location = location.add(offset);
             index++;
         }
@@ -60,14 +68,38 @@ public class Server {
         return generators;
     }
 
-    private void run(IGame game) {
+    private void run(int roundTime) {
+        broadcast(Packer.packInt(roundTime));
         while (game.getField().getSnakes().size() > 0) {
-            game.tick();
-            for (IClient client : clients)
-                client.send(Combiners.combineField(game.getField()));
-            try {
-                Thread.sleep(1000);
-            } catch (Exception ignored) {}
+            broadcast(Packer.packField(game.getField()));
+            sleep(roundTime);
+            updateDirections(roundTime);
         }
+    }
+
+    private void updateDirections(int roundTime) {
+        long startTime = System.currentTimeMillis();
+        HashSet<IClient> changed = new HashSet<>();
+        while (System.currentTimeMillis() - startTime < roundTime) {
+            for (IClient client : clients.keySet()) {
+                if (!changed.contains(client) && client.hasMessage()) {
+                    clients.get(client).setDirection(Packer.unpackVector(client.receive()));
+                    changed.add(client);
+                }
+            }
+            if (changed.size() == clients.size())
+                break;
+        }
+    }
+
+    private void broadcast(char[] message) {
+        clients.forEach((client, player) -> client.send(message));
+    }
+
+    private void sleep(int timeout) {
+        try {
+            Thread.sleep(timeout);
+        }
+        catch (Exception ignored) {}
     }
 }
