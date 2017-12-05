@@ -30,11 +30,14 @@ import javafx.util.Duration;
 
 import model.Direction;
 import model.FieldObjects.*;
+import model.Game;
 import model.Interfaces.IField;
 import model.Interfaces.IFieldObject;
 import model.Interfaces.IPlayer;
 import model.Vector;
+import proto.Settings;
 import proto.SocketClient;
+import server.Interfaces.IGameConstructor;
 import server.SimpleGameConstructor;
 
 import java.io.FileInputStream;
@@ -58,7 +61,7 @@ public class GUI extends Application {
     private Scene gameOverScene;
     private SubScene gameArea;
 
-    private Duration tickDuration = new Duration(10);
+    private Duration tickDuration = new Duration(Settings.TIME_QUANTUM);
     private double cellSize;
     private double strokeWidth;
 
@@ -232,17 +235,13 @@ public class GUI extends Application {
     private void initWaitScene() {
         Button playButton = makeImageButton("images/Wait.gif");
 
-        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
+        EventHandler<ActionEvent> close = event -> primaryStage.setScene(optionScene);
         Parent root = makeGrid(playButton, close);
         waitScene = new Scene(root);
     }
 
     private void initGameScene() {
         tickLine = new Timeline();
-        tickLine.setOnFinished(event -> {
-            arrangeTickLineAndDrawnObjects();
-            tickLine.play();
-        });
 
         gameObjectsToDraw = new Group();
         // Please, do NOT use WINDOW_WIDTH here!
@@ -275,16 +274,17 @@ public class GUI extends Application {
         gameOverScene = new Scene(root);
     }
 
-    private void startOfflineGame(int countPlayers) {
+    private void startOfflineGame(int aiCount) {
+        IGameConstructor constructor = new SimpleGameConstructor();
+        Game game = constructor.construct(aiCount + 1);
+
         HashSet<IPlayer> players = new HashSet<>();
         players.add(player);
-        provider = new LocalFieldProvider(new SimpleGameConstructor(), players, 300);
+        for (int i = 0; i < aiCount; i++)
+            players.add(new AIPlayer(game.getField()));
 
-
-        for (int i = 0; i < countPlayers; i++) {
-            players.add(new AIPlayer(provider.getField()));
-        }
-        provider = new LocalFieldProvider(new SimpleGameConstructor(), players,300);
+        constructor.placePlayers(game.getField(), players);
+        provider = new LocalFieldProvider(game, Settings.ROUND_TIME);
 
         startGame();
     }
@@ -293,6 +293,13 @@ public class GUI extends Application {
         drawnObjects = new HashMap<>();
         cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / provider.getField().getWidth();
         strokeWidth = cellSize / 20;
+        tickLine.setOnFinished(event -> {
+            arrangeTickLineAndDrawnObjects();
+            if (provider.isEnded())
+                gameOver();
+            else
+                tickLine.play();
+        });
         arrangeTickLineAndDrawnObjects();
         tickLine.play();
         primaryStage.setScene(gameScene);
@@ -331,12 +338,19 @@ public class GUI extends Application {
         try {
             Socket socket = new Socket(ip, Integer.parseInt(port));
             provider = new NetworkFieldProvider(new SocketClient(socket), player);
-            while (provider.getField() == null)
-                Thread.sleep(10);
-            startGame();
+            primaryStage.setScene(waitScene);
+            tickLine.getKeyFrames().add(new KeyFrame(tickDuration));
+            tickLine.setOnFinished(event -> {
+                if (provider.isStarted() && provider.getField() != null)
+                    startGame();
+                else
+                    tickLine.play();
+            });
+            tickLine.play();
         }
         catch (Exception ex) {
-            // Irene, don't forget to place there a warning.
+            // Please, do NOT remove a ButtonType here.
+            // It will cause an extremely BIG bug!!!
             new Alert(Alert.AlertType.NONE, "Connection error.", ButtonType.CLOSE).show();
             ex.printStackTrace();
         }

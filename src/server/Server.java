@@ -1,8 +1,11 @@
 package server;
 
 import model.Game;
+import model.Vector;
+import proto.Commands;
 import proto.Interfaces.*;
 import proto.Interfaces.IClientListener;
+import proto.Settings;
 import server.Interfaces.IGameConstructor;
 
 import java.io.Serializable;
@@ -23,7 +26,8 @@ public class Server {
         for (IClient client : acceptClients(listener, clientsCount))
             clients.put(client, new RemotePlayer());
 
-        game = constructor.construct(clients.values());
+        game = constructor.construct(clients.size());
+        constructor.placePlayers(game.getField(), clients.values());
         play(roundTime);
     }
 
@@ -33,7 +37,7 @@ public class Server {
             if (listener.hasClient())
                 clients.add(listener.accept());
             try {
-                Thread.sleep(10);
+                Thread.sleep(Settings.TIME_QUANTUM);
             } catch (Exception ignored) {}
         }
         listener.close();
@@ -41,21 +45,29 @@ public class Server {
     }
 
     private void play(int roundTime) {
+        broadcast(Commands.GAME_START);
         while (game.getField().getSnakes().size() > 0) {
             game.tick();
-            updateDirections(roundTime);
+            waitMessages(roundTime);
             broadcast(game.getField());
         }
+        broadcast(Commands.GAME_END);
     }
 
-    private void updateDirections(int roundTime) {
+    private void waitMessages(int roundTime) {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < roundTime) {
             for (IClient client : clients.keySet()) {
                 if (client.hasMessage())
-                    clients.get(client).setDirection(client.receive());
+                    processMessage(client);
             }
         }
+    }
+
+    private void processMessage(IClient client) {
+        Object message = client.receive();
+        if (message instanceof Vector)
+            clients.get(client).setDirection((Vector)message);
     }
 
     private <T extends Serializable> void broadcast(T object) {

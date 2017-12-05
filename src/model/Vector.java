@@ -79,7 +79,7 @@ public class Vector implements Serializable
         return new Vector(x, y);
     }
 
-    private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+    private void readObject(ObjectInputStream input) throws IOException {
         x = input.readInt();
         y = input.readInt();
     }

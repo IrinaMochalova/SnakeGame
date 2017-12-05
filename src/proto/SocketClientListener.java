@@ -3,6 +3,7 @@ package proto;
 import proto.Interfaces.IClientListener;
 
 import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayDeque;
 
 public class SocketClientListener extends Thread implements IClientListener<SocketClient> {
@@ -28,10 +29,15 @@ public class SocketClientListener extends Thread implements IClientListener<Sock
 
     @Override
     public void run() {
+        try {
+            server.setSoTimeout(Settings.TIME_QUANTUM);
+        } catch (Exception ignored) {}
+
         while (accepting) {
             try {
                 clients.addLast(new SocketClient(server.accept()));
             }
+            catch (SocketTimeoutException ignored) {}
             catch (Exception ex) {
                 ex.printStackTrace();
             }

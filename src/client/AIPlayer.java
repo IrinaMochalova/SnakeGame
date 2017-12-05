@@ -11,7 +11,6 @@ import java.util.ArrayList;
 
 public class AIPlayer implements IPlayer {
     private IField field;
-    private Vector apple;
 
     public AIPlayer(IField field){
         this.field = field;
@@ -19,7 +18,7 @@ public class AIPlayer implements IPlayer {
 
     public Vector getDirection(Vector head, Vector direction) {
         ArrayList<Vector> availableDirections = getAvailableDirections(head, direction);
-        updateAppleLocation(head);
+        Vector apple = findApple(head);
         if (apple == null)
             return availableDirections.get(0);
         double distance = Double.MAX_VALUE;
@@ -34,17 +33,15 @@ public class AIPlayer implements IPlayer {
         return direction;
     }
 
-    private void updateAppleLocation(Vector headLocation) {
-        if (apple != null && field.getObjectAt(apple) instanceof Apple)
-            return;
-        apple = null;
+    private Vector findApple(Vector head) {
+        Vector apple = null;
         double distance = Double.MAX_VALUE;
         for (int x = 0; x < field.getWidth(); x++) {
             for (int y = 0; y < field.getHeight(); y++) {
                 Vector target = new Vector(x, y);
                 IFieldObject object = field.getObjectAt(target);
                 if (object instanceof Apple) {
-                    double newDistance = Vector.getManhattanDistance(target, headLocation);
+                    double newDistance = Vector.getManhattanDistance(target, head);
                     if (newDistance < distance) {
                         apple = target;
                         distance = newDistance;
@@ -52,13 +49,15 @@ public class AIPlayer implements IPlayer {
                 }
             }
         }
+        return apple;
     }
 
     private ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
         ArrayList<Vector> directions = new ArrayList<>();
+        Vector inverted = direction.multiply(-1);
         for (Vector newDirection : Direction.ALL) {
             IFieldObject object  = field.getObjectAt(location.add(newDirection));
-            if (!newDirection.multiply(-1).equals(direction) && (object == null || object instanceof Apple))
+            if (!newDirection.equals(inverted) && (object == null || object instanceof Apple))
                 directions.add(newDirection);
         }
         return directions;

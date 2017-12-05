@@ -5,4 +5,5 @@ public final class Settings {
     public static final int CLIENTS_COUNT = 2;
     public static final int EMPTY_FIELD_SIZE = 10;
     public static final int ROUND_TIME = 500;
+    public static final int TIME_QUANTUM = 10;
 }

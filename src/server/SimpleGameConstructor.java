@@ -3,6 +3,7 @@ package server;
 import model.*;
 import model.FieldObjects.Apple;
 import model.FieldObjects.Wall;
+import model.Interfaces.IField;
 import model.Interfaces.IGenerator;
 import model.Interfaces.IPlayer;
 import proto.Settings;
@@ -14,11 +15,25 @@ import java.util.HashSet;
 public class SimpleGameConstructor implements IGameConstructor {
     private final int PLAYER_RATIO = 5;
 
-    public <T extends IPlayer> Game construct(Collection<T> players) {
-        int size = Settings.EMPTY_FIELD_SIZE + PLAYER_RATIO * players.size();
+    public Game construct(int playersCount) {
+        int size = Settings.EMPTY_FIELD_SIZE + PLAYER_RATIO * playersCount;
         Field field = makeSquareField(size);
-        placePlayers(field, players);
         return new Game(field, makeGenerators(field));
+    }
+
+    public <T extends IPlayer> void placePlayers(IField field, Collection<T> players) {
+        int count = players.size();
+        int size = field.getWidth();
+        int diff = size / count;
+        int half = diff / 2;
+        Vector offset = new Vector(half, half);
+        Vector location = offset.clone();
+        int index = 0;
+        for (IPlayer player : players) {
+            Vector direction = index > size / 2 ? Direction.UP : Direction.DOWN;
+            field.addSnake(new SnakeController(field, location, direction, player));
+            location = location.add(offset);
+        }
     }
 
     private Field makeSquareField(int size) {
@@ -33,21 +48,6 @@ public class SimpleGameConstructor implements IGameConstructor {
         }
 
         return field;
-    }
-
-    private <T extends IPlayer> void placePlayers(Field field, Collection<T> players) {
-        int count = players.size();
-        int size = field.getWidth();
-        int diff = size / count;
-        int half = diff / 2;
-        Vector offset = new Vector(half, half);
-        Vector location = offset.clone();
-        int index = 0;
-        for (IPlayer player : players) {
-            Vector direction = index > size / 2 ? Direction.UP : Direction.DOWN;
-            field.addSnake(new SnakeController(field, location, direction, player));
-            location = location.add(offset);
-        }
     }
 
     private HashSet<IGenerator> makeGenerators(Field field) {

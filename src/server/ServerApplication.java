@@ -12,9 +12,11 @@ public final class ServerApplication {
             ServerSocket server = new ServerSocket(Settings.SERVER_PORT);
             IClientListener listener = new SocketClientListener(server);
             new Server(listener, Settings.CLIENTS_COUNT, Settings.ROUND_TIME, new SimpleGameConstructor());
+            Thread.sleep(2000);
         } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            System.exit(0);
         }
-        System.exit(0);
     }
 }

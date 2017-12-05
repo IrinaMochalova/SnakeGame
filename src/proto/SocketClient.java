@@ -62,11 +62,11 @@ public class SocketClient extends Thread implements IClient {
             return;
         }
 
-        while (!client.isClosed()) {
+        while (client.isConnected()) {
             processInput(input);
             processOutput(output);
             try {
-                sleep(50);
+                sleep(Settings.TIME_QUANTUM);
             } catch (Exception ignored) {}
         }
     }
