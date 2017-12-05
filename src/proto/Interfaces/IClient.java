@@ -1,11 +1,10 @@
 package proto.Interfaces;
 
-public interface IClient<T> {
-    char[] receive();
-    void send(char[] message);
+import java.io.Serializable;
+
+public interface IClient {
+    <TObject extends Serializable> TObject receive();
+    <TObject extends Serializable> void send(TObject object);
 
     boolean hasMessage();
-    boolean isConnected();
-
-    T getInterface();
 }

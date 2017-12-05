@@ -1,31 +1,21 @@
 package proto;
 
-import model.Interfaces.IField;
-import model.Vector;
-import server.FieldMakers;
+import java.io.*;
 
 public final class Packer {
-    public static char[] packField(IField field) {
-        return new char[1];
+    public static <T extends Serializable> byte[] pack(T object) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+        objectStream.writeObject(object);
+        objectStream.close();
+        return byteStream.toByteArray();
     }
 
-    public static IField unpackField(char[] message) {
-        return FieldMakers.makeSquaredField(10);
-    }
-
-    public static char[] packInt(int value) {
-        return Integer.toString(value).toCharArray();
-    }
-
-    public static int unpackInt(char[] message) {
-        return 1000;
-    }
-
-    public static Vector unpackVector(char[] message) {
-        return new Vector(0, 0);
-    }
-
-    public static char[] packVector(Vector vector) {
-        return new char[1];
+    public static <T extends Serializable> T unpack(byte[] bytes) throws ClassNotFoundException, IOException{
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+        ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+        Object object = objectStream.readObject();
+        objectStream.close();
+        return (T)object;
     }
 }

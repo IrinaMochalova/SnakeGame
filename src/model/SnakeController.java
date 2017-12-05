@@ -81,6 +81,8 @@ public class SnakeController implements ISnakeController {
     }
 
     public void updateDirection() {
-        direction = player.getDirection(getHead(), direction);
+        Vector newDirection = player.getDirection(getHead(), direction);
+        if (newDirection != null && Vector.getScalarProduct(newDirection, direction) == 0)
+            direction = newDirection;
     }
 }

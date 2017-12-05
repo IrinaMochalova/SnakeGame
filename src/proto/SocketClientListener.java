@@ -6,12 +6,14 @@ import java.net.ServerSocket;
 import java.util.ArrayDeque;
 
 public class SocketClientListener extends Thread implements IClientListener<SocketClient> {
+    private boolean accepting;
     private ServerSocket server;
     private ArrayDeque<SocketClient> clients;
 
     public SocketClientListener(ServerSocket server) {
         clients = new ArrayDeque<>();
         this.server = server;
+        accepting = true;
 
         start();
     }
@@ -21,18 +23,22 @@ public class SocketClientListener extends Thread implements IClientListener<Sock
     }
 
     public SocketClient accept() {
-        if (!hasClient())
-            return null;
         return clients.removeFirst();
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (accepting) {
             try {
-                clients.addLast(new SocketClient(server.accept(), Settings.MESSAGE_SIZE));
+                clients.addLast(new SocketClient(server.accept()));
             }
-            catch (Exception ignored) { }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
+    }
+
+    public void close() {
+        accepting = false;
     }
 }

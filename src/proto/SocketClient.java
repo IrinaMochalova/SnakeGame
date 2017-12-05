@@ -2,71 +2,96 @@ package proto;
 
 import proto.Interfaces.IClient;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayDeque;
 
-public class SocketClient extends Thread implements IClient<Socket> {
+public class SocketClient extends Thread implements IClient {
     private Socket client;
-    private int bufferSize;
-    private ArrayDeque<char[]> sent;
-    private ArrayDeque<char[]> received;
+    private ArrayDeque<Object> sent;
+    private ArrayDeque<Object> received;
 
-    public SocketClient(Socket client, int bufferSize) {
+    public SocketClient(Socket client) {
         super();
         this.client = client;
-        this.bufferSize = bufferSize;
         received = new ArrayDeque<>();
         sent = new ArrayDeque<>();
 
         start();
     }
 
-    public void send(char[] message) {
-        sent.addLast(message);
+    public <TObject extends Serializable> void send(TObject object) {
+        sent.addLast(object);
     }
 
-    public char[] receive() {
-        if (received.size() == 0)
-            return null;
-        return received.removeFirst();
+    public <TObject extends Serializable> TObject receive() {
+        return (TObject)received.removeFirst();
     }
 
     public boolean hasMessage() {
         return received.size() > 0;
     }
 
-    public boolean isConnected() {
-        return client.isConnected();
+    @Override
+    public int hashCode() {
+        byte[] bytes = client.getInetAddress().getAddress();
+        int xor = 0;
+        for (byte b : bytes)
+            xor ^= b;
+        return xor ^ client.getPort();
     }
 
-    public Socket getInterface() {
-        return client;
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof SocketClient
+                && ((SocketClient)obj).client.getInetAddress().equals(client.getInetAddress())
+                && ((SocketClient)obj).client.getPort() == client.getPort();
     }
 
     @Override
     public void run() {
+        BufferedInputStream input;
+        BufferedOutputStream output;
         try {
-            InputStreamReader input = new InputStreamReader(client.getInputStream());
-            OutputStreamWriter output = new OutputStreamWriter(client.getOutputStream());
-            while (client.isConnected()) {
-                if (input.ready()) {
-                    char[] buffer = new char[bufferSize];
-                    int length = input.read(buffer);
-                    received.addLast(stripMessage(buffer, length));
-                }
-                if (sent.size() > 0) {
-                    output.write(sent.removeFirst());
-                    output.flush();
-                }
-            }
-        } catch (Exception ignored) {}
+            input = new BufferedInputStream(client.getInputStream());
+            output = new BufferedOutputStream(client.getOutputStream());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        while (!client.isClosed()) {
+            processInput(input);
+            processOutput(output);
+            try {
+                sleep(50);
+            } catch (Exception ignored) {}
+        }
     }
 
-    private char[] stripMessage(char[] message, int count) {
-        char[] stripped = new char[count];
-        System.arraycopy(message, 0, stripped, 0, count);
-        return stripped;
+    private void processInput(BufferedInputStream input) {
+        try {
+            if (input.available() > 0) {
+                byte[] bytes = new byte[input.available()];
+                input.read(bytes);
+                received.addLast(Packer.unpack(bytes));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void processOutput(BufferedOutputStream output) {
+        try {
+            if (sent.size() > 0) {
+                Object object = sent.removeFirst();
+                output.write(Packer.pack((Serializable)object));
+                output.flush();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

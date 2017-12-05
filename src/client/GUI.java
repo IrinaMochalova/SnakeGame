@@ -1,5 +1,6 @@
 package client;
 
+import client.Interfaces.IFieldProvider;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -27,12 +28,14 @@ import model.Direction;
 import model.FieldObjects.*;
 import model.Interfaces.IField;
 import model.Interfaces.IFieldObject;
+import model.Interfaces.IPlayer;
 import model.Vector;
-import proto.Settings;
 import proto.SocketClient;
+import server.SimpleGameConstructor;
 
 import java.io.FileInputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
@@ -51,7 +54,8 @@ public class GUI extends Application {
     private double cellSize;
     private double strokeWidth;
 
-    private Client client;
+    private IFieldProvider provider;
+    private KeyboardPlayer player;
 
     private Timeline tickLine;
     private Group gameObjectsToDraw;
@@ -65,6 +69,7 @@ public class GUI extends Application {
         initGameScene();
         initPainter();
         initGameOverScene();
+        initPlayer();
     }
 
     @Override
@@ -130,6 +135,8 @@ public class GUI extends Application {
         });
 
         gameObjectsToDraw = new Group();
+        // Please, do NOT use WINDOW_WIDTH here!
+        // You can skip that warning but it IS very important!!!
         gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
         gameArea.setFill(Color.LIGHTGRAY);
 
@@ -142,8 +149,8 @@ public class GUI extends Application {
             KeyCode code = event.getCode();
             if (code == KeyCode.ESCAPE)
                 gameOver();
-            else if (pressKey(code) != null)
-                client.setDirection(pressKey(code));
+            else
+                player.pressKey(code);
         });
     }
 
@@ -158,8 +165,8 @@ public class GUI extends Application {
         buttonHB.getChildren().add(button);
 
         HBox[] hBoxes = new HBox[]{
-                makeHBox("Ip:", ip),
-                makeHBox("Port:", port),
+                makeHBox("IP:", ip),
+                makeHBox("PORT:", port),
                 buttonHB
         };
 
@@ -182,7 +189,7 @@ public class GUI extends Application {
 
     private void startGame() {
         drawnObjects = new HashMap<>();
-        cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / client.getField().getWidth();
+        cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / provider.getField().getWidth();
         strokeWidth = cellSize / 20;
         arrangeTickLineAndDrawnObjects();
         tickLine.play();
@@ -193,7 +200,7 @@ public class GUI extends Application {
         tickLine.getKeyFrames().clear();
         gameObjectsToDraw.getChildren().clear();
 
-        IField field = client.getField();
+        IField field = provider.getField();
         for (int x = 0; x < field.getWidth(); x++) {
             for (int y = 0; y < field.getHeight(); y++) {
                 Vector loc = new Vector(x, y);
@@ -221,14 +228,16 @@ public class GUI extends Application {
     private void connect(String port, String ip) {
         try {
             Socket socket = new Socket(ip, Integer.parseInt(port));
-            client = new Client(new SocketClient(socket, Settings.MESSAGE_SIZE));
-            while (client.getField() == null) {Thread.sleep(100);}
+            provider = new NetworkFieldProvider(new SocketClient(socket), player);
+            while (provider.getField() == null) {
+                Thread.sleep(10);
+            }
             startGame();
         }
         catch (Exception ex) {
-            new Alert(Alert.AlertType.NONE, "Wrong input.", ButtonType.CLOSE).show();
+            // Irene, don't forget to place there a warning.
+            new Alert(Alert.AlertType.NONE, "Connection error.", ButtonType.CLOSE).show();
             ex.printStackTrace();
-            return;
         }
     }
 
@@ -243,7 +252,9 @@ public class GUI extends Application {
         try {
             input = new FileInputStream(name);
         }
-        catch (Exception ignored) {}
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
         return new Image(input);
     }
 
@@ -264,8 +275,13 @@ public class GUI extends Application {
         root.setBottom(exitButton);
 
         Image image = getImage("images/BackGr.png");
-        BackgroundImage myBI= new BackgroundImage(image,
-                BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT);
+        BackgroundImage myBI= new BackgroundImage(
+                image,
+                BackgroundRepeat.REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                BackgroundSize.DEFAULT
+        );
         root.setBackground(new Background(myBI));
 
         return root;
@@ -281,24 +297,19 @@ public class GUI extends Application {
         sceneTitle.setText("GAME OVER");
         sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
 
-        EventHandler<ActionEvent> close =  event -> primaryStage.close();
+        EventHandler<ActionEvent> close =  event -> System.exit(0);
         Parent root = makeGrid(sceneTitle, close);
 
         gameOverScene = new Scene(root);
     }
 
-    private Vector pressKey(KeyCode key) {
-        switch (key) {
-            case LEFT:
-                return Direction.LEFT;
-            case RIGHT:
-                return Direction.RIGHT;
-            case UP:
-                return Direction.UP;
-            case DOWN:
-                return Direction.DOWN;
-            default:
-                return null;
-        }
+    private void initPlayer() {
+        HashMap<KeyCode, Vector> keys = new HashMap<>();
+        keys.put(KeyCode.LEFT, Direction.LEFT);
+        keys.put(KeyCode.UP, Direction.UP);
+        keys.put(KeyCode.RIGHT, Direction.RIGHT);
+        keys.put(KeyCode.DOWN, Direction.DOWN);
+
+        player = new KeyboardPlayer(keys);
     }
 }
