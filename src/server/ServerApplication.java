@@ -15,5 +15,6 @@ public final class ServerApplication {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        System.exit(0);
     }
 }

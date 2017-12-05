@@ -41,11 +41,10 @@ public class Server {
     }
 
     private void play(int roundTime) {
-        broadcast(roundTime);
         while (game.getField().getSnakes().size() > 0) {
-            broadcast(game.getField());
-            updateDirections(roundTime);
             game.tick();
+            updateDirections(roundTime);
+            broadcast(game.getField());
         }
     }
 

@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -22,7 +23,9 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import model.Direction;
@@ -55,7 +58,7 @@ public class GUI extends Application {
     private Scene gameOverScene;
     private SubScene gameArea;
 
-    private Duration tickDuration = new Duration(250);
+    private Duration tickDuration = new Duration(10);
     private double cellSize;
     private double strokeWidth;
 
@@ -84,6 +87,10 @@ public class GUI extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         primaryStage.resizableProperty().setValue(false);
+        primaryStage.initStyle(StageStyle.UNDECORATED);
+        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        primaryStage.setX((primaryScreenBounds.getWidth() - WINDOW_WIDTH) / 2);
+        primaryStage.setY((primaryScreenBounds.getHeight() - WINDOW_HEIGHT) / 2);
 
         primaryStage.setScene(mainMenuScene);
         primaryStage.show();
@@ -130,7 +137,7 @@ public class GUI extends Application {
         Button playButton = makeImageButton("images/Play.png");
         playButton.setOnAction(event -> primaryStage.setScene(optionScene));
 
-        EventHandler<ActionEvent> close =  event -> primaryStage.close();
+        EventHandler<ActionEvent> close =  event -> System.exit(0);
         Parent root = makeGrid(playButton, close);
         mainMenuScene = new Scene(root);
     }
@@ -165,7 +172,7 @@ public class GUI extends Application {
 
         Button button = new Button("CONNECT");
         button.setCursor(Cursor.HAND);
-        button.setOnAction(event -> {connect(port.getText(), ip.getText()); primaryStage.setScene(waitScene);});
+        button.setOnAction(event -> connect(port.getText(), ip.getText()));
 
         HBox[] hBoxes = new HBox[]{
                 makeHBox("IP:", ip),
@@ -192,7 +199,8 @@ public class GUI extends Application {
 
     private void initOfflineSignUpScene() {
         ComboBox comboBox = new ComboBox();
-        comboBox.getItems().addAll(1, 2, 3);
+        comboBox.getItems().addAll(0, 1, 2, 3);
+        comboBox.setValue(0);
 
         Button play = new Button("PLAY");
         play.setCursor(Cursor.HAND);
@@ -200,7 +208,7 @@ public class GUI extends Application {
         play.setOnAction(event -> startOfflineGame((int)comboBox.getValue()));
 
         HBox[] hBoxes = new HBox[] {
-                new HBox(new Label("PLAYER COUNT: "), comboBox),
+                new HBox(new Label("BOTS COUNT: "), comboBox),
                 new HBox(play)
         };
 
@@ -273,7 +281,7 @@ public class GUI extends Application {
         provider = new LocalFieldProvider(new SimpleGameConstructor(), players, 300);
 
 
-        for (int i = 1; i < countPlayers; i++) {
+        for (int i = 0; i < countPlayers; i++) {
             players.add(new AIPlayer(provider.getField()));
         }
         provider = new LocalFieldProvider(new SimpleGameConstructor(), players,300);
@@ -323,16 +331,14 @@ public class GUI extends Application {
         try {
             Socket socket = new Socket(ip, Integer.parseInt(port));
             provider = new NetworkFieldProvider(new SocketClient(socket), player);
-            while (provider.getField() == null) {
+            while (provider.getField() == null)
                 Thread.sleep(10);
-            }
             startGame();
         }
         catch (Exception ex) {
             // Irene, don't forget to place there a warning.
             new Alert(Alert.AlertType.NONE, "Connection error.", ButtonType.CLOSE).show();
             ex.printStackTrace();
-            return;
         }
     }
 

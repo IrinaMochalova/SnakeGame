@@ -9,15 +9,11 @@ import proto.Interfaces.IClient;
 public class NetworkFieldProvider extends Thread implements IFieldProvider {
     private IClient client;
     private IPlayer player;
-    private int roundTime;
     private IField field;
 
     public NetworkFieldProvider(IClient client, IPlayer player) throws Exception {
         this.client = client;
         this.player = player;
-
-        waitMessage();
-        roundTime = client.receive();
 
         start();
     }
@@ -28,20 +24,17 @@ public class NetworkFieldProvider extends Thread implements IFieldProvider {
 
     @Override
     public void run() {
-        waitMessage();
+        Vector previous = null;
         while (true) {
-            field = client.receive();
+            if (client.hasMessage())
+                field = client.receive();
             Vector direction = player.getDirection(null, null);
-            waitDelay(roundTime - 300);
-            if (direction != null)
+            if (direction != null && !direction.equals(previous)) {
                 client.send(direction);
-            waitMessage();
-        }
-    }
-
-    private void waitMessage() {
-        while (!client.hasMessage())
+                previous = direction;
+            }
             waitDelay(10);
+        }
     }
 
     private void waitDelay(int delay) {

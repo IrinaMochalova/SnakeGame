@@ -27,8 +27,7 @@ public class LocalFieldProvider extends Thread implements IFieldProvider {
         while (game.getField().getSnakes().size() > 0) {
             try {
                 Thread.sleep(roundTime);
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
 
             game.tick();
         }
