@@ -2,9 +2,10 @@ package model.Interfaces;
 
 import model.Vector;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
-public interface IField {
+public interface IField extends Serializable {
     int getWidth();
     int getHeight();
 

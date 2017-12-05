@@ -6,7 +6,7 @@ import model.Vector;
 
 import java.util.HashMap;
 
-public class KeyboardPlayer implements IPlayer{
+public class KeyboardPlayer implements IPlayer {
     private KeyCode lastPressedKey;
     private HashMap<KeyCode, Vector> keys;
 
@@ -19,11 +19,8 @@ public class KeyboardPlayer implements IPlayer{
     }
 
     public Vector getDirection(Vector head, Vector direction) {
-        if (lastPressedKey != null && keys.containsKey(lastPressedKey)) {
-            Vector newDirection = keys.get(lastPressedKey);
-            if (Vector.getScalarProduct(direction, newDirection) == 0)
-                direction = newDirection;
-        }
+        if (lastPressedKey != null && keys.containsKey(lastPressedKey))
+            direction = keys.get(lastPressedKey);
         return direction;
     }
 }

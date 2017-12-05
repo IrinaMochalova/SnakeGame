@@ -2,7 +2,9 @@ package model.Interfaces;
 
 import model.Vector;
 
-public interface IFieldObject {
+import java.io.Serializable;
+
+public interface IFieldObject extends Serializable {
     Vector getLocation();
 
     void interact(ISnakeController controller);

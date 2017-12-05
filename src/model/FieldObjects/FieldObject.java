@@ -4,6 +4,10 @@ import model.Interfaces.IFieldObject;
 import model.Interfaces.ISnakeController;
 import model.Vector;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 public abstract class FieldObject implements IFieldObject {
     protected Vector location;
     protected boolean isActive;
@@ -19,10 +23,17 @@ public abstract class FieldObject implements IFieldObject {
         return location;
     }
 
-    public void interact(ISnakeController controller) {
-    }
+    public void interact(ISnakeController controller) {}
 
     public boolean isActive() {
         return isActive;
+    }
+
+    private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+        location = (Vector)input.readObject();
+    }
+
+    private void writeObject(ObjectOutputStream output) throws IOException {
+        output.writeObject(location);
     }
 }

@@ -1,6 +1,11 @@
 package model;
 
-public class Vector
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+public class Vector implements Serializable
 {
     private int x;
     private int y;
@@ -68,5 +73,15 @@ public class Vector
         int x = Integer.parseInt(parts[0]);
         int y = Integer.parseInt(parts[1]);
         return new Vector(x, y);
+    }
+
+    private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+        x = input.readInt();
+        y = input.readInt();
+    }
+
+    private void writeObject(ObjectOutputStream output) throws IOException {
+        output.writeInt(x);
+        output.writeInt(y);
     }
 }

@@ -4,6 +4,9 @@ import model.Interfaces.IField;
 import model.Interfaces.IFieldObject;
 import model.Interfaces.ISnakeController;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -67,6 +70,14 @@ public class Field implements IField {
                 return location;
             iterator++;
         }
-        throw new IndexOutOfBoundsException("model.Field does not contain any free cell.");
+        throw new IndexOutOfBoundsException("Field does not contain any free cell.");
+    }
+
+    private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+        field = (IFieldObject[][])input.readObject();
+    }
+
+    private void writeObject(ObjectOutputStream output) throws IOException {
+        output.writeObject(field);
     }
 }

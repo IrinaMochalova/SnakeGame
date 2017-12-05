@@ -4,9 +4,9 @@ import model.Interfaces.*;
 
 import java.util.HashSet;
 
-public class Game implements IGame {
-    protected IField field;
-    protected HashSet<IGenerator> generators;
+public class Game {
+    private IField field;
+    private HashSet<IGenerator> generators;
 
     public Game(IField field, HashSet<IGenerator> generators) {
         this.field = field;
@@ -22,7 +22,7 @@ public class Game implements IGame {
         moveSnakes();
     }
 
-    protected void moveSnakes() {
+    private void moveSnakes() {
         HashSet<ISnakeController> died = new HashSet<>();
         for (ISnakeController snake : field.getSnakes()) {
             checkCollision(snake);
@@ -35,7 +35,7 @@ public class Game implements IGame {
             field.removeSnake(snake);
     }
 
-    protected void checkCollision(ISnakeController snake) {
+    private void checkCollision(ISnakeController snake) {
         snake.updateDirection();
         Vector location = snake.getHead().add(snake.getDirection());
         IFieldObject object = field.getObjectAt(location);
@@ -46,7 +46,7 @@ public class Game implements IGame {
         }
     }
 
-    protected void useGenerators() {
+    private void useGenerators() {
         for (IGenerator generator : generators)
             generator.process();
     }
