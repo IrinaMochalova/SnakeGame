@@ -23,17 +23,17 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import model.Direction;
+import model.*;
 import model.FieldObjects.*;
-import model.Interfaces.IField;
-import model.Interfaces.IFieldObject;
-import model.Vector;
+import model.Interfaces.*;
 import proto.Settings;
 import proto.SocketClient;
+import server.FieldMakers;
 
 import java.io.FileInputStream;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.function.Supplier;
 
 public class GUI extends Application {
@@ -42,16 +42,18 @@ public class GUI extends Application {
 
     private Stage primaryStage;
     private Scene mainMenuScene;
+    private Scene optionScene;
+    private Scene signUpScene;
+    private Scene offlineSignUpScene;
     private Scene gameScene;
     private Scene gameOverScene;
-    private Scene signUp;
     private SubScene gameArea;
 
     private Duration tickDuration = new Duration(250);
     private double cellSize;
     private double strokeWidth;
 
-    private Client client;
+    //private Client client;
 
     private Timeline tickLine;
     private Group gameObjectsToDraw;
@@ -60,10 +62,12 @@ public class GUI extends Application {
 
     @Override
     public void init() {
-        initSignUp();
-        initMainMenuScene();
-        initGameScene();
         initPainter();
+        initMainMenuScene();
+        initOptionScene();
+        initSignUpScene();
+        initOfflineSignUpScene();
+        initGameScene();
         initGameOverScene();
     }
 
@@ -115,52 +119,49 @@ public class GUI extends Application {
 
     private void initMainMenuScene() {
         Button playButton = makeImageButton("images/Play.png");
-        playButton.setOnAction(event -> primaryStage.setScene(signUp));
+        playButton.setOnAction(event -> primaryStage.setScene(optionScene));
 
         EventHandler<ActionEvent> close =  event -> primaryStage.close();
         Parent root = makeGrid(playButton, close);
         mainMenuScene = new Scene(root);
     }
 
-    private void initGameScene() {
-        tickLine = new Timeline();
-        tickLine.setOnFinished(event -> {
-            arrangeTickLineAndDrawnObjects();
-            tickLine.play();
-        });
+    private void initOptionScene() {
+        Button goOnline = new Button("GO ONLINE");
+        goOnline.setOnAction(event -> primaryStage.setScene(signUpScene));
 
-        gameObjectsToDraw = new Group();
-        gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
-        gameArea.setFill(Color.LIGHTGRAY);
+        Button offline = new Button("GO OFFLINE");
+        offline.setOnAction(event -> primaryStage.setScene(offlineSignUpScene));
 
-        GridPane root = new GridPane();
-        root.setAlignment(Pos.CENTER);
-        root.getChildren().add(gameArea);
-        gameScene = new Scene(root);
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(goOnline, offline);
+        int  i = 0;
+        for (Node button : center.getChildren()) {
+            button.setCursor(Cursor.HAND);
+            ((Button)button).setMinSize(150, 30);
+            GridPane.setConstraints(button, 0, i);
+            i += 1;
+        }
 
-        gameScene.setOnKeyPressed(event -> {
-            KeyCode code = event.getCode();
-            if (code == KeyCode.ESCAPE)
-                gameOver();
-            else if (pressKey(code) != null)
-                client.setDirection(pressKey(code));
-        });
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
+        Parent root = makeGrid(center, close);
+        optionScene = new Scene(root);
     }
 
-    private void initSignUp() {
+    private void initSignUpScene() {
         TextField ip = new TextField("localhost");
         TextField port = new TextField("15151");
 
         Button button = new Button("CONNECT");
         button.setCursor(Cursor.HAND);
         button.setOnAction(event -> connect(port.getText(), ip.getText()));
-        HBox buttonHB = new HBox();
-        buttonHB.getChildren().add(button);
 
         HBox[] hBoxes = new HBox[]{
                 makeHBox("Ip:", ip),
                 makeHBox("Port:", port),
-                buttonHB
+                new HBox(button)
         };
 
         for (HBox hb : hBoxes) {
@@ -175,55 +176,122 @@ public class GUI extends Application {
             GridPane.setConstraints(center.getChildren().get(i), 0, i);
         }
 
-        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
         Parent root = makeGrid(center, close);
-        signUp = new Scene(root);
+        signUpScene = new Scene(root);
     }
 
-    private void startGame() {
-        drawnObjects = new HashMap<>();
-        cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / client.getField().getWidth();
-        strokeWidth = cellSize / 20;
-        arrangeTickLineAndDrawnObjects();
-        tickLine.play();
-        primaryStage.setScene(gameScene);
-    }
+    private void initOfflineSignUpScene() {
+        ComboBox comboBox = new ComboBox();
+        comboBox.getItems().addAll(1, 2, 3);
 
-    private void arrangeTickLineAndDrawnObjects() {
-        tickLine.getKeyFrames().clear();
-        gameObjectsToDraw.getChildren().clear();
+        Button play = new Button("PLAY");
+        play.setCursor(Cursor.HAND);
+        play.setMinWidth(80);
+        //play.setOnAction(event -> startOfflineGame((int)comboBox.getValue()));
 
-        IField field = client.getField();
-        for (int x = 0; x < field.getWidth(); x++) {
-            for (int y = 0; y < field.getHeight(); y++) {
-                Vector loc = new Vector(x, y);
-                IFieldObject object = field.getObjectAt(loc);
-                if (object == null)
-                    continue;
-                Node node;
-                if (drawnObjects.containsKey(object)) {
-                    node = drawnObjects.get(object);
-                    tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
-                            new KeyValue(node.translateXProperty(), ((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT),
-                            new KeyValue(node.translateYProperty(), ((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT)
-                    ));
-                } else {
-                    node = howToPaint.get(object.getClass()).get();
-                    drawnObjects.put(object, node);
-                    node.translateXProperty().setValue(((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT);
-                    node.translateYProperty().setValue(((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT);
-                }
-                gameObjectsToDraw.getChildren().add(node);
-            }
+        HBox[] hBoxes = new HBox[] {
+                new HBox(new Label("Player count: "), comboBox),
+                new HBox(play)
+        };
+
+        for (HBox hb : hBoxes) {
+            hb.setAlignment(Pos.CENTER_RIGHT);
         }
+
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(hBoxes);
+        for (int i = 0; i < center.getChildren().size(); i++) {
+            GridPane.setConstraints(center.getChildren().get(i), 0, i);
+        }
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
+        Parent root = makeGrid(center, close);
+        offlineSignUpScene = new Scene(root);
     }
+
+    private void initGameScene() {
+        tickLine = new Timeline();
+        tickLine.setOnFinished(event -> {
+            //arrangeTickLineAndDrawnObjects();
+            tickLine.play();
+        });
+
+        gameObjectsToDraw = new Group();
+        gameArea = new SubScene(gameObjectsToDraw, WINDOW_HEIGHT, WINDOW_HEIGHT);
+        gameArea.setFill(Color.LIGHTGRAY);
+
+        GridPane root = new GridPane();
+        root.setAlignment(Pos.CENTER);
+        root.getChildren().add(gameArea);
+        gameScene = new Scene(root);
+
+        /*gameScene.setOnKeyPressed(event -> {
+            KeyCode code = event.getCode();
+            if (code == KeyCode.ESCAPE)
+                gameOver();
+            else if (pressKey(code) != null)
+                client.setDirection(pressKey(code));
+        });*/
+    }
+
+    private void initGameOverScene() {
+        Text sceneTitle = new Text();
+        sceneTitle.setText("GAME OVER");
+        sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
+        Parent root = makeGrid(sceneTitle, close);
+
+        gameOverScene = new Scene(root);
+    }
+
+//    private void startGame() {
+//        drawnObjects = new HashMap<>();
+//        //cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / client.getField().getWidth();
+//        strokeWidth = cellSize / 20;
+//        arrangeTickLineAndDrawnObjects();
+//        tickLine.play();
+//        primaryStage.setScene(gameScene);
+//    }
+//
+//    private void arrangeTickLineAndDrawnObjects() {
+//        tickLine.getKeyFrames().clear();
+//        gameObjectsToDraw.getChildren().clear();
+//
+//        /*IField field = client.getField();
+//        for (int x = 0; x < field.getWidth(); x++) {
+//            for (int y = 0; y < field.getHeight(); y++) {
+//                Vector loc = new Vector(x, y);
+//                IFieldObject object = field.getObjectAt(loc);
+//                if (object == null)
+//                    continue;
+//                Node node;
+//                if (drawnObjects.containsKey(object)) {
+//                    node = drawnObjects.get(object);
+//                    tickLine.getKeyFrames().add(new KeyFrame(tickDuration,
+//                            new KeyValue(node.translateXProperty(), ((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT),
+//                            new KeyValue(node.translateYProperty(), ((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT)
+//                    ));
+//                } else {
+//                    node = howToPaint.get(object.getClass()).get();
+//                    drawnObjects.put(object, node);
+//                    node.translateXProperty().setValue(((double) loc.getX()) / field.getWidth() * WINDOW_HEIGHT);
+//                    node.translateYProperty().setValue(((double) loc.getY()) / field.getHeight() * WINDOW_HEIGHT);
+//                }
+//                gameObjectsToDraw.getChildren().add(node);
+//            }
+//        }*/
+//    }
 
     private void connect(String port, String ip) {
         try {
             Socket socket = new Socket(ip, Integer.parseInt(port));
-            client = new Client(new SocketClient(socket, Settings.MESSAGE_SIZE));
-            while (client.getField() == null) {Thread.sleep(100);}
-            startGame();
+            /*client = new Client(new SocketClient(socket, Settings.MESSAGE_SIZE));
+            while (client.getField() == null) {Thread.sleep(100);}*/
+            //startGame();
         }
         catch (Exception ex) {
             new Alert(Alert.AlertType.NONE, "Wrong input.", ButtonType.CLOSE).show();
@@ -271,21 +339,47 @@ public class GUI extends Application {
         return root;
     }
 
+    /*private void startOfflineGame(int countOpponents) {
+        IField field = FieldMakers.makeBoardedField(15, 15);
+        HashSet<IGenerator> generators = new HashSet<>();
+        generators.add(new Generator<>(Apple.class, field));
+
+        Game game = new Game(field, generators);
+
+        HashMap<KeyCode, Vector> keys = new HashMap<>();
+        keys.put(KeyCode.UP, Direction.UP);
+        keys.put(KeyCode.DOWN, Direction.DOWN);
+        keys.put(KeyCode.LEFT, Direction.LEFT);
+        keys.put(KeyCode.RIGHT, Direction.RIGHT);
+
+        KeyboardPlayer controller = new KeyboardPlayer(keys);
+
+        ISnakeController snake = new SnakeController(field, new Vector(1, 1), Direction.RIGHT, controller);
+        field.addSnake(snake);
+
+
+        IPlayer aiController = new AIPlayer(field);
+        HashSet<ISnakeController> snakeControllers = new HashSet<>();
+        for (int i = 0; i < countOpponents; i++)
+            snakeControllers.add(new SnakeController(field, field.findEmptyCell(), Direction.RIGHT, aiController));
+        for (ISnakeController snakeController : snakeControllers)
+            field.addSnake(snakeController);
+
+        drawnObjects = new HashMap<>();
+        cellSize = ((double) Integer.min(WINDOW_HEIGHT, WINDOW_WIDTH)) / game.getField().getWidth();
+        strokeWidth = cellSize / 20;
+        arrangeTickLineAndDrawnObjects();
+        tickLine.play();
+        primaryStage.setScene(gameScene);
+    }*/
+
+
+
     public void gameOver() {
         tickLine.stop();
         primaryStage.setScene(gameOverScene);
     }
 
-    private void initGameOverScene() {
-        Text sceneTitle = new Text();
-        sceneTitle.setText("GAME OVER");
-        sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
-
-        EventHandler<ActionEvent> close =  event -> primaryStage.close();
-        Parent root = makeGrid(sceneTitle, close);
-
-        gameOverScene = new Scene(root);
-    }
 
     private Vector pressKey(KeyCode key) {
         switch (key) {
