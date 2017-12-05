@@ -45,9 +45,11 @@ public class GUI extends Application {
 
     private Stage primaryStage;
     private Scene mainMenuScene;
+    private Scene optionScene;
+    private Scene signUpScene;
+    private Scene offlineSignUpScene;
     private Scene gameScene;
     private Scene gameOverScene;
-    private Scene signUp;
     private SubScene gameArea;
 
     private Duration tickDuration = new Duration(250);
@@ -64,10 +66,12 @@ public class GUI extends Application {
 
     @Override
     public void init() {
-        initSignUp();
-        initMainMenuScene();
-        initGameScene();
         initPainter();
+        initMainMenuScene();
+        initOptionScene();
+        initSignUpScene();
+        initOfflineSignUpScene();
+        initGameScene();
         initGameOverScene();
         initPlayer();
     }
@@ -120,11 +124,97 @@ public class GUI extends Application {
 
     private void initMainMenuScene() {
         Button playButton = makeImageButton("images/Play.png");
-        playButton.setOnAction(event -> primaryStage.setScene(signUp));
+        playButton.setOnAction(event -> primaryStage.setScene(optionScene));
 
         EventHandler<ActionEvent> close =  event -> primaryStage.close();
         Parent root = makeGrid(playButton, close);
         mainMenuScene = new Scene(root);
+    }
+
+    private void initOptionScene() {
+        Button goOnline = new Button("GO ONLINE");
+        goOnline.setOnAction(event -> primaryStage.setScene(signUpScene));
+
+        Button offline = new Button("GO OFFLINE");
+        offline.setOnAction(event -> primaryStage.setScene(offlineSignUpScene));
+
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(goOnline, offline);
+        int  i = 0;
+        for (Node button : center.getChildren()) {
+            button.setCursor(Cursor.HAND);
+            ((Button)button).setMinSize(150, 30);
+            GridPane.setConstraints(button, 0, i);
+            i += 1;
+        }
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
+        Parent root = makeGrid(center, close);
+        optionScene = new Scene(root);
+    }
+
+    private void initSignUpScene() {
+        TextField ip = new TextField("localhost");
+        TextField port = new TextField("15151");
+
+        Button button = new Button("CONNECT");
+        button.setCursor(Cursor.HAND);
+        button.setOnAction(event -> connect(port.getText(), ip.getText()));
+
+        HBox[] hBoxes = new HBox[]{
+                makeHBox("Ip:", ip),
+                makeHBox("Port:", port),
+                new HBox(button)
+        };
+
+        for (HBox hb : hBoxes) {
+            hb.setAlignment(Pos.CENTER_RIGHT);
+        }
+
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(hBoxes);
+        for (int i = 0; i < center.getChildren().size(); i++) {
+            GridPane.setConstraints(center.getChildren().get(i), 0, i);
+        }
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
+        Parent root = makeGrid(center, close);
+        signUpScene = new Scene(root);
+    }
+
+    private void initOfflineSignUpScene() {
+        ComboBox comboBox = new ComboBox();
+        comboBox.getItems().addAll(1, 2, 3);
+
+        Button play = new Button("PLAY");
+        play.setCursor(Cursor.HAND);
+        play.setMinWidth(80);
+        //play.setOnAction(event -> startOfflineGame((int)comboBox.getValue()));
+
+        HBox[] hBoxes = new HBox[] {
+                new HBox(new Label("Player count: "), comboBox),
+                new HBox(play)
+        };
+
+        for (HBox hb : hBoxes) {
+            hb.setAlignment(Pos.CENTER_RIGHT);
+        }
+
+        GridPane center = new GridPane();
+        center.setVgap(10);
+        center.setAlignment(Pos.CENTER);
+        center.getChildren().addAll(hBoxes);
+        for (int i = 0; i < center.getChildren().size(); i++) {
+            GridPane.setConstraints(center.getChildren().get(i), 0, i);
+        }
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
+        Parent root = makeGrid(center, close);
+        offlineSignUpScene = new Scene(root);
     }
 
     private void initGameScene() {
@@ -154,37 +244,15 @@ public class GUI extends Application {
         });
     }
 
-    private void initSignUp() {
-        TextField ip = new TextField("localhost");
-        TextField port = new TextField("15151");
-
-        Button button = new Button("CONNECT");
-        button.setCursor(Cursor.HAND);
-        button.setOnAction(event -> connect(port.getText(), ip.getText()));
-        HBox buttonHB = new HBox();
-        buttonHB.getChildren().add(button);
-
-        HBox[] hBoxes = new HBox[]{
-                makeHBox("IP:", ip),
-                makeHBox("PORT:", port),
-                buttonHB
-        };
-
-        for (HBox hb : hBoxes) {
-            hb.setAlignment(Pos.CENTER_RIGHT);
-        }
-
-        GridPane center = new GridPane();
-        center.setVgap(10);
-        center.setAlignment(Pos.CENTER);
-        center.getChildren().addAll(hBoxes);
-        for (int i = 0; i < center.getChildren().size(); i++) {
-            GridPane.setConstraints(center.getChildren().get(i), 0, i);
-        }
+    private void initGameOverScene() {
+        Text sceneTitle = new Text();
+        sceneTitle.setText("GAME OVER");
+        sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
 
         EventHandler<ActionEvent> close =  event -> primaryStage.setScene(mainMenuScene);
-        Parent root = makeGrid(center, close);
-        signUp = new Scene(root);
+        Parent root = makeGrid(sceneTitle, close);
+
+        gameOverScene = new Scene(root);
     }
 
     private void startGame() {
@@ -238,6 +306,7 @@ public class GUI extends Application {
             // Irene, don't forget to place there a warning.
             new Alert(Alert.AlertType.NONE, "Connection error.", ButtonType.CLOSE).show();
             ex.printStackTrace();
+            return;
         }
     }
 
@@ -292,16 +361,6 @@ public class GUI extends Application {
         primaryStage.setScene(gameOverScene);
     }
 
-    private void initGameOverScene() {
-        Text sceneTitle = new Text();
-        sceneTitle.setText("GAME OVER");
-        sceneTitle.setFont(Font.font("verdana", FontWeight.NORMAL, 50));
-
-        EventHandler<ActionEvent> close =  event -> System.exit(0);
-        Parent root = makeGrid(sceneTitle, close);
-
-        gameOverScene = new Scene(root);
-    }
 
     private void initPlayer() {
         HashMap<KeyCode, Vector> keys = new HashMap<>();
