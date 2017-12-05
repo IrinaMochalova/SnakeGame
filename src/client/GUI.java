@@ -5,6 +5,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -35,8 +36,9 @@ import server.SimpleGameConstructor;
 
 import java.io.FileInputStream;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.function.Supplier;
 
 public class GUI extends Application {
@@ -48,6 +50,7 @@ public class GUI extends Application {
     private Scene optionScene;
     private Scene signUpScene;
     private Scene offlineSignUpScene;
+    private Scene waitScene;
     private Scene gameScene;
     private Scene gameOverScene;
     private SubScene gameArea;
@@ -71,6 +74,7 @@ public class GUI extends Application {
         initOptionScene();
         initSignUpScene();
         initOfflineSignUpScene();
+        initWaitScene();
         initGameScene();
         initGameOverScene();
         initPlayer();
@@ -161,11 +165,11 @@ public class GUI extends Application {
 
         Button button = new Button("CONNECT");
         button.setCursor(Cursor.HAND);
-        button.setOnAction(event -> connect(port.getText(), ip.getText()));
+        button.setOnAction(event -> {connect(port.getText(), ip.getText()); primaryStage.setScene(waitScene);});
 
         HBox[] hBoxes = new HBox[]{
-                makeHBox("Ip:", ip),
-                makeHBox("Port:", port),
+                makeHBox("IP:", ip),
+                makeHBox("PORT:", port),
                 new HBox(button)
         };
 
@@ -193,10 +197,10 @@ public class GUI extends Application {
         Button play = new Button("PLAY");
         play.setCursor(Cursor.HAND);
         play.setMinWidth(80);
-        //play.setOnAction(event -> startOfflineGame((int)comboBox.getValue()));
+        play.setOnAction(event -> startOfflineGame((int)comboBox.getValue()));
 
         HBox[] hBoxes = new HBox[] {
-                new HBox(new Label("Player count: "), comboBox),
+                new HBox(new Label("PLAYER COUNT: "), comboBox),
                 new HBox(play)
         };
 
@@ -215,6 +219,14 @@ public class GUI extends Application {
         EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
         Parent root = makeGrid(center, close);
         offlineSignUpScene = new Scene(root);
+    }
+
+    private void initWaitScene() {
+        Button playButton = makeImageButton("images/Wait.gif");
+
+        EventHandler<ActionEvent> close =  event -> primaryStage.setScene(optionScene);
+        Parent root = makeGrid(playButton, close);
+        waitScene = new Scene(root);
     }
 
     private void initGameScene() {
@@ -253,6 +265,13 @@ public class GUI extends Application {
         Parent root = makeGrid(sceneTitle, close);
 
         gameOverScene = new Scene(root);
+    }
+
+    private void startOfflineGame(int countPlayers) {
+        HashSet<IPlayer> players = new HashSet<>();
+        players.add(player);
+        provider = new LocalFieldProvider(new SimpleGameConstructor(), players, 100);
+        startGame();
     }
 
     private void startGame() {
@@ -360,7 +379,6 @@ public class GUI extends Application {
         tickLine.stop();
         primaryStage.setScene(gameOverScene);
     }
-
 
     private void initPlayer() {
         HashMap<KeyCode, Vector> keys = new HashMap<>();
