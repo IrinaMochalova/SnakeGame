@@ -54,7 +54,6 @@ public class AIPlayer implements IPlayer {
         }
     }
 
-
     private ArrayList<Vector> getAvailableDirections(Vector location, Vector direction) {
         ArrayList<Vector> directions = new ArrayList<>();
         for (Vector newDirection : Direction.ALL) {

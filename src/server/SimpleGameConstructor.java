@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 public class SimpleGameConstructor implements IGameConstructor {
-    private final int PLAYER_RATIO = 2;
+    private final int PLAYER_RATIO = 5;
 
     public <T extends IPlayer> Game construct(Collection<T> players) {
         int size = Settings.EMPTY_FIELD_SIZE + PLAYER_RATIO * players.size();

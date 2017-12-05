@@ -48,6 +48,10 @@ public class Vector implements Serializable
         return new Vector(this.x + vector.x, this.y + vector.y);
     }
 
+    public Vector subtract(Vector vector){
+        return new Vector(this.x - vector.x, this.y - vector.y);
+    }
+
     public Vector multiply(int value) {
         return new Vector(this.x * value, this.y * value);
     }

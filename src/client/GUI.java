@@ -270,7 +270,14 @@ public class GUI extends Application {
     private void startOfflineGame(int countPlayers) {
         HashSet<IPlayer> players = new HashSet<>();
         players.add(player);
-        provider = new LocalFieldProvider(new SimpleGameConstructor(), players, 100);
+        provider = new LocalFieldProvider(new SimpleGameConstructor(), players, 300);
+
+
+        for (int i = 1; i < countPlayers; i++) {
+            players.add(new AIPlayer(provider.getField()));
+        }
+        provider = new LocalFieldProvider(new SimpleGameConstructor(), players,300);
+
         startGame();
     }
 
