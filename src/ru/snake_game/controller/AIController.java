@@ -14,21 +14,26 @@ import java.util.LinkedList;
 public class AIController implements IController {
     private IField field;
     private Vector apple;
+    private Vector[][] connections;
+    private LinkedList<Vector> way;
 
     public AIController(IField field){
         this.field = field;
     }
 
     public Vector getDirection(Vector head, Vector direction) {
-        Vector[][] connections = findConnections(head, direction);
+        Vector[][] updateConnections = updateConnections(head, direction);
+        if (updateConnections.equals(connections))
+            return way.removeFirst();
+        connections = updateConnections;
         if (apple == null)
             return getAvailableDirections(head, direction).get(0);
-        Vector newDirection = getNextDirection(connections);
+        Vector newDirection = getNextDirection();
         return newDirection;
     }
 
-    private Vector getNextDirection(Vector[][] connections){
-        LinkedList<Vector> way = new LinkedList<>();
+    private Vector getNextDirection(){
+        way = new LinkedList<>();
 
         Vector location = apple;
         Vector prevLocation = connections[apple.getX()][apple.getY()];
@@ -40,7 +45,8 @@ public class AIController implements IController {
         return way.removeFirst();
     }
 
-    private Vector[][] findConnections(Vector headLocation, Vector myDirection) {
+    private Vector[][] updateConnections(Vector headLocation, Vector myDirection) {
+
         LinkedList<Vector> queue= new LinkedList<>();
         LinkedList<Vector> directionsQueue = new LinkedList<>();
         HashSet<Vector> used = new HashSet<>();
