@@ -20,14 +20,14 @@ public class AIController implements IController {
     }
 
     public Vector getDirection(Vector head, Vector direction) {
-        LinkedList<Vector>way = findWayToApple(head, direction);
+        Vector[][] connections = findConnections(head, direction);
         if (apple == null)
             return getAvailableDirections(head, direction).get(0);
-        return way.removeFirst();
+        Vector newDirection = getNextDirection(connections);
+        return newDirection;
     }
 
-    private LinkedList<Vector> findWayToApple(Vector head, Vector direction){
-        Vector[][] connections = findConnections(head, direction);
+    private Vector getNextDirection(Vector[][] connections){
         LinkedList<Vector> way = new LinkedList<>();
 
         Vector location = apple;
@@ -37,8 +37,7 @@ public class AIController implements IController {
             location = prevLocation;
             prevLocation = connections[location.getX()][location.getY()];
         }
-
-        return way;
+        return way.removeFirst();
     }
 
     private Vector[][] findConnections(Vector headLocation, Vector myDirection) {

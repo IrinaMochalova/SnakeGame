@@ -196,16 +196,6 @@ public class GameApplication extends Application {
 
         game = new Game(field, generators);
 
-        HashMap<KeyCode, Vector> keys = new HashMap<>();
-        keys.put(KeyCode.UP, Directions.UP);
-        keys.put(KeyCode.DOWN, Directions.DOWN);
-        keys.put(KeyCode.LEFT, Directions.LEFT);
-        keys.put(KeyCode.RIGHT, Directions.RIGHT);
-
-        controller = new KeyboardController(keys);
-
-        ISnakeController snake = new SnakeController(field, new Vector(4, 4), Directions.RIGHT, controller);
-        field.addSnake(snake);
         IController aiController = new AIController(field);
         ISnakeController aiSnake= new SnakeController(field, new Vector(8, 8), Directions.RIGHT, aiController);
         field.addSnake(aiSnake);
