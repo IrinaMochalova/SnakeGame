@@ -9,10 +9,10 @@ import model.Vector;
 
 import java.util.ArrayList;
 
-public class AIPlayer implements IPlayer {
+public class SimpleAIPlayer implements IPlayer {
     private IField field;
 
-    public AIPlayer(IField field){
+    public SimpleAIPlayer(IField field){
         this.field = field;
     }
 

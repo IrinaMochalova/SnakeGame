@@ -5,7 +5,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -42,7 +41,6 @@ import server.SimpleGameConstructor;
 
 import java.io.FileInputStream;
 import java.net.Socket;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Supplier;
@@ -281,7 +279,7 @@ public class GUI extends Application {
         HashSet<IPlayer> players = new HashSet<>();
         players.add(player);
         for (int i = 0; i < aiCount; i++)
-            players.add(new AIPlayer(game.getField()));
+            players.add(new SimpleAIPlayer(game.getField()));
 
         constructor.placePlayers(game.getField(), players);
         provider = new LocalFieldProvider(game, Settings.ROUND_TIME);

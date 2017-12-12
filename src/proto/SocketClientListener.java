@@ -20,11 +20,11 @@ public class SocketClientListener extends Thread implements IClientListener<Sock
     }
 
     public boolean hasClient() {
-        return clients.size() > 0;
+        return !clients.isEmpty();
     }
 
     public SocketClient accept() {
-        return clients.removeFirst();
+        return clients.poll();
     }
 
     @Override
@@ -35,7 +35,7 @@ public class SocketClientListener extends Thread implements IClientListener<Sock
 
         while (accepting) {
             try {
-                clients.addLast(new SocketClient(server.accept()));
+                clients.push(new SocketClient(server.accept()));
             }
             catch (SocketTimeoutException ignored) {}
             catch (Exception ex) {
